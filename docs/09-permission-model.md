@@ -1,121 +1,121 @@
 # 09 — Permission Model
 
-**Trạng thái:** Draft v1.0  
-**Phụ thuộc:** 02 Architectural Invariants, 04 Core Domain Model, 05 State Machines, 08 Sandbox Security Model  
-**Mục tiêu:** Khóa toàn bộ permission model — ai được làm gì, trong ngữ cảnh nào, với ràng buộc nào — làm nền cho enforcement points EP1–EP7 (doc 08) và audit requirements toàn hệ thống.
+**Status:** Draft v1.0
+**Dependencies:** 02 Architectural Invariants, 04 Core Domain Model, 05 State Machines, 08 Sandbox Security Model
+**Goal:** Lock down the entire permission model — who can do what, in which context, under which constraints — serving as the foundation for enforcement points EP1–EP7 (doc 08) and system-wide audit requirements.
 
 ---
 
-## 1. Nguyên tắc Permission Bất biến
+## 1. Permission Invariants
 
-Những nguyên tắc sau không được vi phạm bởi bất kỳ implementation, config, hay override nào:
+The following principles must not be violated by any implementation, configuration, or override:
 
-**P1 — Deny by default.**  
-Mọi action đều bị từ chối trừ khi có grant tường minh. Không có implicit allow.
+**P1 — Deny by default.**
+All actions are denied unless an explicit grant exists. There is no implicit allow.
 
-**P2 — Agent không bao giờ tự nâng quyền.**  
-Agent không được dùng prompt, tool call, hay output để mở rộng permission của chính nó hoặc của Sandbox đang chạy nó. Mọi yêu cầu nâng quyền từ agent đều bị từ chối và tạo violation event.
+**P2 — An agent must never escalate its own privileges.**
+An agent must not use prompts, tool calls, or outputs to expand its own permissions or those of the Sandbox running it. All privilege escalation requests from an agent are denied and generate a violation event.
 
-**P3 — Permission không được delegate vượt qua giới hạn của người cấp.**  
-Không actor nào có thể grant một permission mà chính nó không có. Không task creator nào có thể cấp quyền rộng hơn workspace policy cho phép.
+**P3 — Permissions cannot be delegated beyond the grantor's limits.**
+No actor can grant a permission that it does not itself possess. No task creator can grant permissions broader than what the workspace policy allows.
 
-**P4 — Capability permission và binding permission là hai lớp tách biệt.**  
-Được phép *dùng* một capability (terminal, browser, egress) là một chuyện. Được phép *bind* secret hay *cấp* egress để capability đó hoạt động là chuyện khác. Cả hai đều phải được grant tường minh.
+**P4 — Capability permissions and binding permissions are two separate layers.**
+Being allowed to *use* a capability (terminal, browser, egress) is one thing. Being allowed to *bind* a secret or *grant* egress for that capability to function is another. Both must be explicitly granted.
 
-**P5 — Mọi quyết định allow/deny đều phải có audit record.**  
-Không có silent deny. Không có silent allow. Mọi enforcement point phải emit audit event bất kể kết quả.
+**P5 — Every allow/deny decision must have an audit record.**
+No silent deny. No silent allow. Every enforcement point must emit an audit event regardless of outcome.
 
-**P6 — System global deny không thể bị override bởi bất kỳ actor nào trong hệ thống.**  
-Chỉ có operator ở cấp deployment mới có thể thay đổi system global deny. Workspace admin, task creator, agent đều không thể.
+**P6 — System global deny cannot be overridden by any actor in the system.**
+Only an operator at the deployment level can modify a system global deny. Workspace admins, task creators, and agents cannot.
 
-**P7 — Sandbox không sở hữu permission — nó kế thừa từ AgentInvocation tại thời điểm provisioning.**  
-Sau khi Sandbox được provisioned, `policy_snapshot` của nó là bất biến. Không có runtime permission escalation trong Sandbox.
+**P7 — A Sandbox does not own permissions — it inherits them from the AgentInvocation at provisioning time.**
+Once a Sandbox is provisioned, its `policy_snapshot` is immutable. There is no runtime permission escalation within the Sandbox.
 
 ---
 
 ## 2. Actor Types
 
-### 2.1 Danh sách actor
+### 2.1 Actor list
 
-| Actor | Định nghĩa | Có thể bị impersonate không |
+| Actor | Definition | Can be impersonated |
 |---|---|---|
-| `user` | Người dùng thật, đã authenticate | Không |
-| `service_account` | Identity của một service nội bộ (Orchestrator, Agent Engine, Artifact service, v.v.) | Không |
-| `orchestrator` | Orchestrator service, hoạt động thay mặt Task/Run | Không |
-| `agent_runtime` | Agent Engine đang thực thi một AgentInvocation cụ thể | Không |
-| `sandbox_sidecar` | Process giám sát trong Sandbox (policy enforcer, egress proxy) | Không |
-| `scheduler` | Scheduled trigger, không có user context | Không |
+| `user` | A real, authenticated human user | No |
+| `service_account` | Identity of an internal service (Orchestrator, Agent Engine, Artifact service, etc.) | No |
+| `orchestrator` | The Orchestrator service, acting on behalf of a Task/Run | No |
+| `agent_runtime` | The Agent Engine executing a specific AgentInvocation | No |
+| `sandbox_sidecar` | A supervisor process within the Sandbox (policy enforcer, egress proxy) | No |
+| `scheduler` | A scheduled trigger with no user context | No |
 
-### 2.2 Agent runtime KHÔNG phải user
+### 2.2 Agent runtime is NOT a user
 
-Agent runtime không có user identity. Khi agent thực hiện hành động cần permission, quyết định được đưa ra dựa trên:
-1. Policy của AgentInvocation (kế thừa từ Task/Run).
-2. Permission của user đã tạo Task — không phải agent tự quyết định.
+The agent runtime does not have a user identity. When the agent performs an action requiring permissions, the decision is made based on:
+1. The AgentInvocation's policy (inherited from Task/Run).
+2. The permissions of the user who created the Task — not the agent's own decision.
 
-Agent không thể "đăng nhập" hay nhận token người dùng.
+An agent cannot "log in" or receive a user token.
 
 ---
 
 ## 3. Permission Vocabulary
 
-Mỗi permission được định nghĩa theo format: `<resource>:<action>`
+Each permission is defined using the format: `<resource>:<action>`
 
 ### 3.1 Workspace-level permissions
 
-| Permission | Ý nghĩa |
+| Permission | Meaning |
 |---|---|
-| `workspace:view` | Xem metadata workspace |
-| `workspace:manage_members` | Thêm/xóa/thay đổi role thành viên |
-| `workspace:manage_policy` | Tạo/sửa/xóa Policy trong workspace |
-| `workspace:manage_secrets` | Tạo/xóa SecretBinding cấp workspace |
-| `workspace:manage_integrations` | Kết nối external integration (Git, storage, v.v.) |
-| `workspace:delete` | Xóa toàn bộ workspace |
+| `workspace:view` | View workspace metadata |
+| `workspace:manage_members` | Add/remove/change member roles |
+| `workspace:manage_policy` | Create/edit/delete Policies within the workspace |
+| `workspace:manage_secrets` | Create/delete workspace-level SecretBindings |
+| `workspace:manage_integrations` | Connect external integrations (Git, storage, etc.) |
+| `workspace:delete` | Delete the entire workspace |
 
 ### 3.2 Task-level permissions
 
-| Permission | Ý nghĩa |
+| Permission | Meaning |
 |---|---|
-| `task:create` | Tạo Task trong workspace |
-| `task:view` | Xem Task và metadata |
-| `task:cancel` | Hủy Task (kể cả cascade) |
-| `task:approve` | Quyết định approval gate ở cấp Task/Run/Step |
-| `task:override_policy` | Ghi đè policy cụ thể tại cấp Task (trong giới hạn workspace policy cho phép) |
+| `task:create` | Create a Task within the workspace |
+| `task:view` | View a Task and its metadata |
+| `task:cancel` | Cancel a Task (including cascade) |
+| `task:approve` | Decide on approval gates at the Task/Run/Step level |
+| `task:override_policy` | Override specific policies at the Task level (within workspace policy limits) |
 
 ### 3.3 Run/Step-level permissions
 
-| Permission | Ý nghĩa |
+| Permission | Meaning |
 |---|---|
-| `run:view` | Xem Run, Step, timeline |
-| `run:cancel` | Hủy một Run cụ thể |
-| `run:create` | Tạo Run mới cho Task (re-run, retry) |
+| `run:view` | View a Run, Step, and timeline |
+| `run:cancel` | Cancel a specific Run |
+| `run:create` | Create a new Run for a Task (re-run, retry) |
 
 ### 3.4 Artifact permissions
 
-| Permission | Ý nghĩa |
+| Permission | Meaning |
 |---|---|
-| `artifact:view` | Xem metadata artifact |
-| `artifact:download` | Tải nội dung artifact |
-| `artifact:archive` | Chuyển artifact sang archived |
-| `artifact:untaint` | Gỡ taint flag khỏi artifact (chỉ sau security review) |
+| `artifact:view` | View artifact metadata |
+| `artifact:download` | Download artifact content |
+| `artifact:archive` | Move artifact to archived state |
+| `artifact:untaint` | Remove taint flag from artifact (only after security review) |
 
 ### 3.5 Capability permissions
 
-| Permission | Ý nghĩa |
+| Permission | Meaning |
 |---|---|
-| `capability:terminal` | Cho phép dùng terminal trong Sandbox |
-| `capability:browser` | Cho phép dùng browser automation trong Sandbox |
-| `capability:file_write` | Cho phép agent ghi file ra ngoài Sandbox (vào artifact) |
-| `capability:network_egress` | Cho phép Sandbox có outbound network |
-| `capability:external_api` | Cho phép agent gọi external API qua Model Gateway |
+| `capability:terminal` | Allow terminal usage within the Sandbox |
+| `capability:browser` | Allow browser automation within the Sandbox |
+| `capability:file_write` | Allow the agent to write files outside the Sandbox (to artifacts) |
+| `capability:network_egress` | Allow the Sandbox to have outbound network access |
+| `capability:external_api` | Allow the agent to call external APIs via the Model Gateway |
 
 ### 3.6 Binding permissions
 
-| Permission | Ý nghĩa |
+| Permission | Meaning |
 |---|---|
-| `binding:create_workspace_secret` | Tạo SecretBinding cấp workspace |
-| `binding:create_task_secret` | Tạo SecretBinding chỉ cho một Task cụ thể |
-| `binding:attach_to_run` | Gắn SecretBinding vào một Run |
-| `binding:attach_egress_allowlist` | Gắn egress domain allowlist vào Sandbox |
+| `binding:create_workspace_secret` | Create a workspace-level SecretBinding |
+| `binding:create_task_secret` | Create a SecretBinding for a specific Task only |
+| `binding:attach_to_run` | Attach a SecretBinding to a Run |
+| `binding:attach_egress_allowlist` | Attach an egress domain allowlist to a Sandbox |
 
 ---
 
@@ -151,193 +151,193 @@ Mỗi permission được định nghĩa theo format: `<resource>:<action>`
 | `binding:attach_to_run` | | ✓ | ✓ | ✓ |
 | `binding:attach_egress_allowlist` | | | ✓ | ✓ |
 
-**Ghi chú "(own)":** `editor` chỉ có permission này trên resource do chính mình tạo.  
-**Ghi chú "policy-gated":** Permission này tồn tại trong role nhưng chỉ có hiệu lực nếu workspace Policy cho phép tường minh.
+**Note "(own)":** `editor` only has this permission on resources they created themselves.
+**Note "policy-gated":** This permission exists within the role but is only effective if the workspace Policy explicitly allows it.
 
 ### 4.2 Service account permissions
 
 | Service Account | Permissions |
 |---|---|
 | `orchestrator` | `task:*`, `run:*`, `step:*`, `artifact:view`, `capability:*` (enforce only) |
-| `agent_runtime` | `artifact:view` (input only), `capability:external_api` (qua Model Gateway) |
+| `agent_runtime` | `artifact:view` (input only), `capability:external_api` (via Model Gateway) |
 | `artifact_service` | `artifact:*` |
-| `sandbox_sidecar` | `capability:*` (read policy + enforce only, không grant) |
+| `sandbox_sidecar` | `capability:*` (read policy + enforce only, no grant) |
 
 ---
 
 ## 5. Policy Resolution Order
 
-Khi có xung đột giữa các lớp policy, thứ tự ưu tiên từ cao xuống thấp:
+When conflicts exist between policy layers, the priority order from highest to lowest is:
 
 ```
-[1] System Global Deny          ← tuyệt đối, không thể override
-[2] Workspace Policy (deny)     ← workspace admin set
-[3] Task Override (deny)        ← task creator trong giới hạn workspace
+[1] System Global Deny          ← absolute, cannot be overridden
+[2] Workspace Policy (deny)     ← set by workspace admin
+[3] Task Override (deny)        ← set by task creator within workspace limits
 [4] Workspace Policy (allow)
 [5] Task Override (allow)
-[6] Agent Policy                ← do task config định nghĩa
-[7] Sandbox Class Default       ← default của loại sandbox
+[6] Agent Policy                ← defined by task config
+[7] Sandbox Class Default       ← default for the sandbox type
 ```
 
-### 5.1 Quy tắc resolution
+### 5.1 Resolution rules
 
-**Deny wins at same level.** Nếu cùng cấp có cả allow và deny, deny thắng.
+**Deny wins at same level.** If both allow and deny exist at the same level, deny wins.
 
-**Higher level deny không thể bị overridden bởi lower level allow.**  
-Ví dụ: Nếu Workspace Policy deny `capability:terminal`, Task Override không thể allow `capability:terminal`.
+**Higher level deny cannot be overridden by lower level allow.**
+Example: If Workspace Policy denies `capability:terminal`, Task Override cannot allow `capability:terminal`.
 
-**Higher level allow có thể bị thu hẹp bởi lower level.**  
-Ví dụ: Workspace Policy allow `network_egress` cho domain `*.github.com`, Task Override có thể thu hẹp còn `api.github.com` — nhưng không thể mở rộng thêm domain mới.
+**Higher level allow can be narrowed by lower level.**
+Example: Workspace Policy allows `network_egress` for domain `*.github.com`, Task Override can narrow it to `api.github.com` — but cannot add new domains.
 
-**Agent Policy chỉ được là tập con của Task Override.**  
-Agent không thể tự grant thêm permission mà Task không có.
+**Agent Policy must be a subset of Task Override.**
+An agent cannot self-grant additional permissions that the Task does not have.
 
-**System Global Deny là lớp không có trong policy store.**  
-Nó là hardcode trong enforcement logic, không thể sửa qua UI hay API.
+**System Global Deny is a layer that does not exist in the policy store.**
+It is hardcoded in enforcement logic and cannot be modified via UI or API.
 
-### 5.2 Ví dụ resolution thực tế
+### 5.2 Real-world resolution example
 
 ```
-Tình huống: Agent muốn dùng terminal trong Sandbox
+Scenario: Agent wants to use terminal in Sandbox
 
 Resolution chain:
-  [1] System Global Deny:   không có rule cho terminal → pass
-  [2] Workspace deny:       không có → pass
-  [3] Task Override deny:   không có → pass
-  [4] Workspace allow:      allow capability:terminal cho role=editor → match
-  [5] Task Override allow:  không có → inherit from [4]
-  [6] Agent Policy:         allow terminal (subset của [4]) → confirmed
+  [1] System Global Deny:   no rule for terminal → pass
+  [2] Workspace deny:       none → pass
+  [3] Task Override deny:   none → pass
+  [4] Workspace allow:      allow capability:terminal for role=editor → match
+  [5] Task Override allow:  none → inherit from [4]
+  [6] Agent Policy:         allow terminal (subset of [4]) → confirmed
   [7] Sandbox Class Default: sandbox_class=standard, terminal=allowed → confirmed
 
-Kết quả: ALLOW — emit audit event
+Result: ALLOW — emit audit event
 ```
 
 ```
-Tình huống: Agent muốn gọi external API domain không trong allowlist
+Scenario: Agent wants to call external API on a domain not in the allowlist
 
 Resolution chain:
-  [1] System Global Deny:   deny nếu provider key trực tiếp từ sandbox → DENY
+  [1] System Global Deny:   deny if provider key directly from sandbox → DENY
 
-Kết quả: DENY ngay tại [1] — emit audit + violation event
+Result: DENY immediately at [1] — emit audit + violation event
 ```
 
 ---
 
 ## 6. Delegation Rules
 
-### 6.1 Nguyên tắc delegation
+### 6.1 Delegation principles
 
-Delegation là quá trình một actor cấp một tập con permission của mình cho actor khác trong một context cụ thể.
+Delegation is the process of an actor granting a subset of its permissions to another actor within a specific context.
 
-**Quy tắc cứng:**
-- Actor chỉ có thể delegate permission mà nó đang có.
-- Delegation không được vượt qua workspace boundary.
-- Delegation luôn là tập con — không bao giờ mở rộng.
+**Hard rules:**
+- An actor can only delegate permissions it currently holds.
+- Delegation must not cross workspace boundaries.
+- Delegation is always a subset — never an expansion.
 
-### 6.2 Delegation chain hợp lệ
+### 6.2 Valid delegation chains
 
 ```
 workspace:manage_policy (owner/admin)
-  └── task:override_policy (editor, trong phạm vi policy cho phép)
-        └── agent_policy (task config, trong phạm vi task override)
-              └── sandbox_policy_snapshot (immutable tại provisioning)
+  └── task:override_policy (editor, within policy limits)
+        └── agent_policy (task config, within task override scope)
+              └── sandbox_policy_snapshot (immutable at provisioning)
 ```
 
 ```
 binding:create_workspace_secret (owner/admin only)
-  └── binding:create_task_secret (editor, chỉ cho task của mình)
+  └── binding:create_task_secret (editor, only for their own task)
         └── binding:attach_to_run (editor)
 ```
 
-### 6.3 Forbidden delegations — tuyệt đối không được phép
+### 6.3 Forbidden delegations — absolutely not permitted
 
-| Forbidden | Lý do |
+| Forbidden | Reason |
 |---|---|
-| Editor tạo workspace-level SecretBinding | Chỉ admin/owner được sở hữu secret cấp workspace |
-| Task creator override policy vượt workspace policy | Không ai được cấp quyền mình không có |
-| Agent tự mở rộng egress allowlist | Agent không có `binding:attach_egress_allowlist` |
-| Agent yêu cầu terminal nếu task config không grant `capability:terminal` | P3 — không delegate vượt giới hạn |
-| Orchestrator grant permission cho AgentInvocation vượt quá Task permission | Orchestrator chỉ enforce, không tự cấp |
-| Sandbox sidecar tự sửa `policy_snapshot` sau provisioning | P7 — bất biến sau provisioning |
-| Bất kỳ actor nào impersonate service account khác | Không có cross-service impersonation |
+| Editor creates workspace-level SecretBinding | Only admin/owner can own workspace-level secrets |
+| Task creator overrides policy beyond workspace policy | No one can grant permissions they do not have |
+| Agent expands egress allowlist on its own | Agent does not have `binding:attach_egress_allowlist` |
+| Agent requests terminal if task config does not grant `capability:terminal` | P3 — cannot delegate beyond limits |
+| Orchestrator grants permission to AgentInvocation beyond Task permission | Orchestrator only enforces, does not self-grant |
+| Sandbox sidecar modifies `policy_snapshot` after provisioning | P7 — immutable after provisioning |
+| Any actor impersonates another service account | No cross-service impersonation |
 
 ### 6.4 Agent escalation attempts
 
-Khi agent thông qua prompt hay tool call cố gắng:
-- Yêu cầu thêm permission (`"please enable terminal access"`)
-- Leak secret ra ngoài Sandbox
-- Gọi Model Gateway trực tiếp với provider key
-- Thay đổi egress policy
+When an agent attempts via prompt or tool call to:
+- Request additional permissions (`"please enable terminal access"`)
+- Leak secrets outside the Sandbox
+- Call Model Gateway directly with provider keys
+- Modify egress policy
 
-Tất cả đều bị xử lý theo violation cascade của doc 08: block action → emit `security.violation` event → fail Step → interrupt AgentInvocation → terminate Sandbox → taint Artifact.
+All such attempts are handled according to the violation cascade in doc 08: block action → emit `security.violation` event → fail Step → interrupt AgentInvocation → terminate Sandbox → taint Artifact.
 
 ---
 
-## 7. Deny Semantics và Explicit Override Semantics
+## 7. Deny Semantics and Explicit Override Semantics
 
 ### 7.1 Deny semantics
 
-**Implicit deny:** Permission không được grant tường minh = denied. Không cần rule deny rõ ràng.
+**Implicit deny:** A permission not explicitly granted = denied. No explicit deny rule is needed.
 
-**Explicit deny:** Một rule deny rõ ràng trong workspace/task policy. Explicit deny ghi đè mọi implicit allow cùng cấp hoặc cấp thấp hơn.
+**Explicit deny:** An explicit deny rule in workspace/task policy. Explicit deny overrides all implicit allows at the same or lower level.
 
-**System global deny:** Hardcode, không có trong policy store, không hiển thị trong UI, không thể override.
+**System global deny:** Hardcoded, not in the policy store, not visible in UI, cannot be overridden.
 
-Danh sách system global deny bất biến:
-- Sandbox gọi Model Gateway trực tiếp với provider key.
-- Agent Runtime trực tiếp tạo artifact (bypass Artifact service).
-- Sandbox sửa `policy_snapshot` của chính nó.
-- Bất kỳ actor nào xóa event từ event store.
-- Agent Runtime nhận secret value thô (chỉ nhận `secret_ref`).
+Immutable system global deny list:
+- Sandbox calls Model Gateway directly with provider key.
+- Agent Runtime directly creates artifact (bypassing Artifact service).
+- Sandbox modifies its own `policy_snapshot`.
+- Any actor deletes events from the event store.
+- Agent Runtime receives raw secret values (only receives `secret_ref`).
 
 ### 7.2 Override semantics
 
-Override là cơ chế task-level thu hẹp hoặc tường minh hóa một phần workspace policy cho một Task cụ thể.
+Override is the mechanism for task-level narrowing or explicit specification of a portion of workspace policy for a specific Task.
 
-Override **có thể:**
-- Thu hẹp egress allowlist (từ `*.github.com` thành `api.github.com`)
-- Giới hạn sandbox class (từ `standard+browser` thành `standard`)
-- Yêu cầu approval gate bổ sung trước một Step cụ thể
+Override **can:**
+- Narrow egress allowlist (from `*.github.com` to `api.github.com`)
+- Restrict sandbox class (from `standard+browser` to `standard`)
+- Require additional approval gates before a specific Step
 
-Override **không thể:**
-- Thêm domain vào egress không có trong workspace allowlist
-- Nâng sandbox class lên cao hơn workspace policy cho phép
-- Bỏ qua approval gate đã được workspace policy yêu cầu
-- Grant `capability:terminal` nếu workspace deny rõ ràng
+Override **cannot:**
+- Add domains to egress that are not in the workspace allowlist
+- Elevate sandbox class beyond what workspace policy allows
+- Skip approval gates that workspace policy requires
+- Grant `capability:terminal` if workspace explicitly denies it
 
 ---
 
-## 8. Mapping từ Permission sang Enforcement Points EP1–EP7
+## 8. Mapping Permissions to Enforcement Points EP1–EP7
 
-| Enforcement Point (doc 08) | Permissions được check | Ai check | Deny action |
+| Enforcement Point (doc 08) | Permissions checked | Who checks | Deny action |
 |---|---|---|---|
-| **EP1** — Task submission | `task:create`, `capability:*` (pre-flight) | Orchestrator | Reject task với `permission_denied` |
-| **EP2** — Run preparation / secret binding | `binding:attach_to_run`, `binding:create_task_secret` | Orchestrator | Fail run tại `preparing` |
+| **EP1** — Task submission | `task:create`, `capability:*` (pre-flight) | Orchestrator | Reject task with `permission_denied` |
+| **EP2** — Run preparation / secret binding | `binding:attach_to_run`, `binding:create_task_secret` | Orchestrator | Fail run at `preparing` |
 | **EP3** — Sandbox provisioning | `capability:terminal`, `capability:browser`, `capability:network_egress`, `sandbox class` | Execution layer | Fail provisioning, emit `security.violation` |
 | **EP4** — Tool call dispatch | `capability:external_api`, `capability:file_write` | Agent Engine + Orchestrator | Block tool call, emit `security.violation` |
 | **EP5** — Egress request | `capability:network_egress`, egress allowlist | Sandbox sidecar | Block connection, emit `security.violation` |
 | **EP6** — Artifact write | `artifact:*`, `capability:file_write` | Artifact service | Reject write, taint artifact |
 | **EP7** — Approval gate | `task:approve` | Orchestrator | Block progression, wait or timeout |
 
-### 8.1 Thứ tự check tại mỗi EP
+### 8.1 Check order at each EP
 
-Mọi Enforcement Point phải check theo thứ tự sau:
+Every Enforcement Point must check in the following order:
 1. System global deny
 2. Workspace explicit deny
 3. Task override deny
 4. Workspace allow
 5. Task override allow
-6. Agent policy (nếu applicable)
+6. Agent policy (if applicable)
 
-Dừng tại bước đầu tiên có match. Emit audit event với level tương ứng.
+Stop at the first matching step. Emit an audit event with the corresponding level.
 
 ---
 
 ## 9. Audit Requirements
 
-### 9.1 Mọi quyết định permission đều phải có audit record
+### 9.1 Every permission decision must have an audit record
 
-Không có silent allow, không có silent deny.
+No silent allow, no silent deny.
 
 **Audit event envelope:**
 
@@ -359,57 +359,57 @@ Không có silent allow, không có silent deny.
 }
 ```
 
-### 9.2 Retention của audit events
+### 9.2 Audit event retention
 
 | Event type | Retention |
 |---|---|
-| `permission.allowed` | 90 ngày hot, 1 năm cold |
-| `permission.denied` | 90 ngày hot, 1 năm cold |
-| `permission.violation` | 1 năm hot, 3 năm cold (hoặc theo enterprise contract) |
+| `permission.allowed` | 90 days hot, 1 year cold |
+| `permission.denied` | 90 days hot, 1 year cold |
+| `permission.violation` | 1 year hot, 3 years cold (or per enterprise contract) |
 
-### 9.3 Audit không được bị bỏ qua
+### 9.3 Audit must not be bypassed
 
-Nếu audit write fail, enforcement point phải:
-- Với `permission.violation`: fail-safe deny — không cho phép action tiếp tục.
-- Với `permission.allowed`: cho phép action tiếp tục nhưng alert ops team về audit write failure.
-- Với `permission.denied`: deny và alert ops team về audit write failure.
+If an audit write fails, the enforcement point must:
+- For `permission.violation`: fail-safe deny — do not allow the action to proceed.
+- For `permission.allowed`: allow the action to proceed but alert the ops team about the audit write failure.
+- For `permission.denied`: deny and alert the ops team about the audit write failure.
 
 ---
 
-## 10. Forbidden Delegations — Tổng hợp
+## 10. Forbidden Delegations — Summary
 
-Danh sách cứng, không thể bị override bởi bất kỳ config, policy, hay deployment mode nào:
+A hard list that cannot be overridden by any configuration, policy, or deployment mode:
 
-| # | Forbidden | Threat tương ứng (doc 08) |
+| # | Forbidden | Corresponding threat (doc 08) |
 |---|---|---|
-| FD1 | Agent tự nâng quyền qua prompt hoặc tool call | T1 — prompt injection |
-| FD2 | Agent nhận secret value thô | T2 — secret exfiltration |
-| FD3 | Sandbox gọi Model Gateway trực tiếp với provider key | T2, T4 |
-| FD4 | Task creator grant permission không có trong workspace policy | T6 — privilege escalation |
-| FD5 | Editor tạo workspace-level SecretBinding | T2 |
-| FD6 | Orchestrator tự cấp permission vượt quá Task config | P3 |
-| FD7 | Sandbox sidecar sửa `policy_snapshot` sau provisioning | P7 |
-| FD8 | Bất kỳ actor nào impersonate service account khác | T5 — lateral movement |
-| FD9 | Artifact service nhận lệnh tạo artifact từ Agent Runtime trực tiếp | Invariant từ doc 04 |
-| FD10 | Event store nhận lệnh update/delete event từ bất kỳ actor nào | Invariant từ doc 06 |
+| FD1 | Agent self-escalates privileges via prompt or tool call | T1 — prompt injection |
+| FD2 | Agent receives raw secret values | T2 — secret exfiltration |
+| FD3 | Sandbox calls Model Gateway directly with provider key | T2, T4 |
+| FD4 | Task creator grants permissions not present in workspace policy | T6 — privilege escalation |
+| FD5 | Editor creates workspace-level SecretBinding | T2 |
+| FD6 | Orchestrator self-grants permissions beyond Task config | P3 |
+| FD7 | Sandbox sidecar modifies `policy_snapshot` after provisioning | P7 |
+| FD8 | Any actor impersonates another service account | T5 — lateral movement |
+| FD9 | Artifact service receives direct artifact creation commands from Agent Runtime | Invariant from doc 04 |
+| FD10 | Event store receives update/delete event commands from any actor | Invariant from doc 06 |
 
 ---
 
-## 11. Điểm để ngỏ có chủ đích
+## 11. Intentionally Deferred Decisions
 
-| Điểm | Lý do chưa khóa |
+| Item | Reason not yet locked |
 |---|---|
-| Schema cụ thể của `policy.rules` JSONB | Cần khi implement Policy engine, phụ thuộc vào deployment mode |
-| MFA/step-up auth cho approval gate | Phụ thuộc vào Auth provider integration |
-| Guest/external collaborator role | Không thuộc v1 scope |
-| Cross-workspace permission (chia sẻ artifact sang workspace khác) | Phức tạp, để sau khi workspace isolation ổn định |
-| API key permission scope (cho developer API access) | Phụ thuộc vào doc 07 API Contracts |
-| Time-limited grants | Useful nhưng không critical cho kiến trúc gốc |
+| Specific schema for `policy.rules` JSONB | Needed when implementing the Policy engine; depends on deployment mode |
+| MFA/step-up auth for approval gate | Depends on Auth provider integration |
+| Guest/external collaborator role | Not in v1 scope |
+| Cross-workspace permissions (sharing artifacts to another workspace) | Complex; deferred until workspace isolation is stable |
+| API key permission scope (for developer API access) | Depends on doc 07 API Contracts |
+| Time-limited grants | Useful but not critical for the base architecture |
 
 ---
 
-## 12. Bước tiếp theo
+## 12. Next Steps
 
-Tài liệu tiếp theo là **10 — Artifact Lineage Model**: khóa cách artifact được tạo ra, kế thừa, derive từ nhau, và làm thế nào để reproduce một artifact từ snapshot + config + lineage chain.
+The next document is **10 — Artifact Lineage Model**: locking down how artifacts are created, inherited, derived from each other, and how to reproduce an artifact from a snapshot + config + lineage chain.
 
-Permission model (doc 09) là nền để Artifact Lineage biết ai được phép đọc, download, hay untaint một artifact tại từng điểm trong lineage.
+The Permission model (doc 09) serves as the foundation for Artifact Lineage to know who is allowed to read, download, or untaint an artifact at each point in the lineage.

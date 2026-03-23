@@ -1,54 +1,54 @@
 # 17 — Implementation Roadmap
 
-**Trạng thái:** Draft v1.0  
-**Phụ thuộc:** Toàn bộ docs 00–16  
-**Mục tiêu:** Execution contract cho team — không phải roadmap marketing. Khóa philosophy, phase model, entry/exit conditions, vertical slice order, PP preconditions, architecture gates, và definition of done.
+**Status:** Draft v1.0
+**Dependencies:** All docs 00–16
+**Objective:** Execution contract for the team — not a marketing roadmap. Locks philosophy, phase model, entry/exit conditions, vertical slice order, PP preconditions, architecture gates, and definition of done.
 
 ---
 
 ## 1. Implementation Philosophy
 
-**Architecture-first, implementation-increments.**  
-Bộ docs 00–16 là constitution của hệ. Không có code nào được viết để "chứng minh concept" rồi sau đó refactor cho phù hợp với kiến trúc. Nếu muốn thay đổi kiến trúc, thay đổi doc trước — rồi mới code.
+**Architecture-first, implementation-increments.**
+Docs 00–16 form the constitution of the system. No code may be written to "prove a concept" then later refactored to fit the architecture. If you want to change the architecture, change the doc first — then code.
 
-**Vertical slices only.**  
-Không build "toàn bộ orchestrator layer" rồi mới build "toàn bộ agent layer". Mỗi slice cắt thẳng qua mọi layer (DB → domain → API → event → frontend) cho một capability cụ thể, end-to-end, có thể verify được. Slice chưa xong thì không được bắt sang slice tiếp theo.
+**Vertical slices only.**
+Do not build "the entire orchestrator layer" then "the entire agent layer." Each slice cuts straight through every layer (DB → domain → API → event → frontend) for a specific capability, end-to-end, and must be verifiable. A slice that is not done must not be abandoned for the next slice.
 
-**Risk-first ordering.**  
-Thứ tự slice bám vào rủi ro kiến trúc, không bám vào tính năng user muốn thấy trước. Những gì có thể phá kiến trúc về sau (state machine authority, outbox, artifact isolation, security boundary) phải được khóa sớm nhất.
+**Risk-first ordering.**
+Slice order follows architectural risk, not which features users want to see first. Things that could break the architecture later (state machine authority, outbox, artifact isolation, security boundary) must be locked earliest.
 
-**Pressure points là preconditions, không phải nice-to-have.**  
-PP1–PP10 từ gate review không phải technical debt để giải quyết sau. Mỗi slice liệt kê PP nào bắt buộc pass. Merge bị block nếu PP precondition chưa đạt.
+**Pressure points are preconditions, not nice-to-haves.**
+PP1–PP10 from the gate review are not technical debt to be addressed later. Each slice lists which PPs must pass. Merge is blocked if PP preconditions are not met.
 
-**Done là done — không có "mostly done".**  
-Definition of Done (mục 7) áp dụng cho mọi slice, mọi phase. Không có "chạy được nhưng chưa có tests", "deployed nhưng chưa có audit trail".
+**Done means done — there is no "mostly done."**
+The Definition of Done (section 7) applies to every slice, every phase. There is no "it runs but has no tests" or "deployed but has no audit trail."
 
 ---
 
 ## 2. Phase Model
 
 ```
-Phase A — Foundation & Skeleton         (tuần 1–4)
-  Mọi service skeleton, DB schema, event infrastructure, import boundaries,
-  architecture tests. Hệ chưa làm được việc gì có ý nghĩa — nhưng không
-  thể vi phạm kiến trúc.
+Phase A — Foundation & Skeleton         (weeks 1–4)
+  All service skeletons, DB schemas, event infrastructure, import boundaries,
+  architecture tests. The system cannot do anything meaningful yet — but it
+  cannot violate the architecture.
 
-Phase B — First Vertical Slice          (tuần 5–12)
+Phase B — First Vertical Slice          (weeks 5–12)
   End-to-end: user submit task → orchestrator → run → step →
   agent invocation → artifact → SSE → timeline view.
-  Bằng chứng rằng toàn bộ xương sống hoạt động đúng.
+  Proof that the entire backbone works correctly.
 
-Phase C — Hardening & Security Tightening  (tuần 13–20)
+Phase C — Hardening & Security Tightening  (weeks 13–20)
   Sandbox enforcement, policy enforcement, taint/lineage, approval flows,
   failure recovery, multi-step workflows, investigation surfaces.
-  Hệ trở thành "production-ready" cho single-tenant.
+  The system becomes "production-ready" for single-tenant.
 
-Phase D — Topology Expansion            (tuần 21–28)
+Phase D — Topology Expansion            (weeks 21–28)
   Hybrid topology, multi-tenant isolation, scale hardening,
   model gateway fallback, compliance surfaces, performance SLOs.
 ```
 
-Mỗi phase có **entry conditions** (cần thỏa mãn trước khi bắt đầu) và **exit criteria** (cần thỏa mãn trước khi coi phase đó xong).
+Each phase has **entry conditions** (must be satisfied before starting) and **exit criteria** (must be satisfied before considering the phase complete).
 
 ---
 
@@ -57,85 +57,85 @@ Mỗi phase có **entry conditions** (cần thỏa mãn trước khi bắt đầ
 ### Phase A — Foundation & Skeleton
 
 **Entry conditions:**
-- Docs 00–17 đã được review và không có GAP nghiêm trọng còn mở.
-- Team đã đọc và acknowledge gate review + DNB1–DNB12.
-- Monorepo đã init với pnpm + Turborepo.
-- Docker Compose local-first topology đã setup.
+- Docs 00–17 have been reviewed and no critical GAPs remain open.
+- The team has read and acknowledged gate review + DNB1–DNB12.
+- Monorepo has been initialized with pnpm + Turborepo.
+- Docker Compose local-first topology has been set up.
 
 **Exit criteria:**
-- Tất cả 15 service có skeleton: Dockerfile, `main.py`/`main.ts`, health endpoint `/healthz/live` + `/healthz/ready`.
-- Tất cả DB schemas đã tạo với đúng ownership (mỗi schema có DB user riêng).
-- Outbox table đã tạo cho mọi service cần emit event.
-- `dependency-cruiser` và `import-linter` đã chạy clean (0 violations).
-- Architecture test PP1 đã pass: `test_no_status_write_outside_orchestrator`.
-- Architecture test PP10 đã pass: `test_artifact_schema_credentials`.
-- CI pipeline đã chạy đủ stages: lint → arch-test → build.
-- `event-store` service có thể nhận và replay event theo `correlation_id`.
-- `sse-gateway` có thể mở connection và gửi heartbeat.
+- All 15 services have skeletons: Dockerfile, `main.py`/`main.ts`, health endpoint `/healthz/live` + `/healthz/ready`.
+- All DB schemas have been created with correct ownership (each schema has its own DB user).
+- Outbox tables have been created for all services that need to emit events.
+- `dependency-cruiser` and `import-linter` run clean (0 violations).
+- Architecture test PP1 passes: `test_no_status_write_outside_orchestrator`.
+- Architecture test PP10 passes: `test_artifact_schema_credentials`.
+- CI pipeline runs all stages: lint → arch-test → build.
+- `event-store` service can receive and replay events by `correlation_id`.
+- `sse-gateway` can open a connection and send heartbeats.
 
-**Không cần có trong Phase A:**
-- Business logic bất kỳ.
-- UI bất kỳ.
-- Model call bất kỳ.
+**Not required in Phase A:**
+- Any business logic.
+- Any UI.
+- Any model calls.
 
 ---
 
 ### Phase B — First Vertical Slice
 
 **Entry conditions:**
-- Phase A exit criteria đã đạt.
-- `api-gateway` đã có authn qua `auth-service`.
-- `policy-service` có thể trả permission decision cho ít nhất một resource type.
+- Phase A exit criteria have been met.
+- `api-gateway` has authn via `auth-service`.
+- `policy-service` can return a permission decision for at least one resource type.
 
 **Exit criteria:**
-- User có thể submit Task → Task chuyển `draft → pending → running` đúng state machine.
-- Orchestrator tạo Run, tạo Step, assign AgentInvocation.
-- AgentInvocation gọi model qua `model-gateway` (không gọi trực tiếp).
-- Model response được wrap thành Artifact thông qua `artifact-service` (không direct write).
-- Artifact có đủ provenance tuple 5 thành phần — không được là alias cho model version.
-- `artifact.ready` event được emit.
-- `sse-gateway` push timeline events về client.
-- Frontend Task timeline hiển thị đúng thứ tự `task.submitted → run.started → step.started → ... → artifact.ready`.
-- Khi Orchestrator crash và restart: Run state được rebuild đúng từ event log (PP2).
-- Agent Runtime crash và restart: dangling AgentInvocation bị interrupt đúng (PP3).
-- Tất cả PP preconditions cho Slices 1–5 đã pass (xem mục 4).
+- User can submit Task → Task transitions `draft → pending → running` per the state machine.
+- Orchestrator creates Run, creates Step, assigns AgentInvocation.
+- AgentInvocation calls model via `model-gateway` (not directly).
+- Model response is wrapped as an Artifact through `artifact-service` (not direct write).
+- Artifact has a complete 5-component provenance tuple — model version must not be an alias.
+- `artifact.ready` event is emitted.
+- `sse-gateway` pushes timeline events to the client.
+- Frontend Task timeline displays the correct sequence `task.submitted → run.started → step.started → ... → artifact.ready`.
+- When Orchestrator crashes and restarts: Run state is correctly rebuilt from event log (PP2).
+- Agent Runtime crashes and restarts: dangling AgentInvocation is correctly interrupted (PP3).
+- All PP preconditions for Slices 1–5 have passed (see section 4).
 
 ---
 
 ### Phase C — Hardening & Security Tightening
 
 **Entry conditions:**
-- Phase B exit criteria đã đạt.
-- Gate 1 và Gate 2 đã pass (xem mục 5).
+- Phase B exit criteria have been met.
+- Gate 1 and Gate 2 have passed (see section 5).
 
 **Exit criteria:**
-- Sandbox provisioning + policy enforcement hoạt động: egress deny-by-default, `/secrets` unmount trước `sandbox.terminated`.
-- Policy violation cascade hoạt động: violation → taint artifact → block download.
-- Approval flow đầy đủ: `waiting_approval`, timeout watcher, approve/reject, cascade cancel.
-- Failure recovery: Run failed → human triggers Rerun → new Run created (không resume cũ).
-- Taint propagation: taint artifact cha → taint artifact con tự động, taint write trước event emit (PP5).
-- Investigation surfaces: Artifact Lineage View, Taint Investigation View, Sandbox Session View đều load trong < 2 giây.
-- Audit trail: mọi permission decision có audit record, `permission.violation` trigger alert.
-- Degraded mode: khi `policy-service` down, tất cả request bị deny (không fail open).
-- Tất cả PP preconditions cho Slices 6–9 đã pass.
-- Gate 3 và Gate 4 đã pass.
+- Sandbox provisioning + policy enforcement works: egress deny-by-default, `/secrets` unmount before `sandbox.terminated`.
+- Policy violation cascade works: violation → taint artifact → block download.
+- Approval flow is complete: `waiting_approval`, timeout watcher, approve/reject, cascade cancel.
+- Failure recovery: Run failed → human triggers Rerun → new Run created (old Run not resumed).
+- Taint propagation: taint parent artifact → child artifact is tainted automatically, taint write before event emit (PP5).
+- Investigation surfaces: Artifact Lineage View, Taint Investigation View, Sandbox Session View all load within < 2 seconds.
+- Audit trail: every permission decision has an audit record, `permission.violation` triggers alert.
+- Degraded mode: when `policy-service` is down, all requests are denied (no fail open).
+- All PP preconditions for Slices 6–9 have passed.
+- Gate 3 and Gate 4 have passed.
 
 ---
 
 ### Phase D — Topology Expansion
 
 **Entry conditions:**
-- Phase C exit criteria đã đạt.
-- Gate 1–4 đã pass.
+- Phase C exit criteria have been met.
+- Gates 1–4 have passed.
 
 **Exit criteria:**
-- Hybrid topology: control plane trên cloud, execution plane local, event/artifact relay nhất quán.
-- Multi-tenant isolation: workspace A không đọc/ghi được resource của workspace B.
-- Model Gateway fallback: primary provider down → fallback sang backup transparent với agent.
-- Performance SLOs đạt: API command ack p95 < 500ms, SSE propagation p95 < 2s, lineage view < 2s.
-- Compliance surfaces: Approval Audit View có export CSV/JSON.
-- `sandbox_attempt_index` hoạt động đúng trong multi-attempt scenario (PP4).
-- Load test: 50 concurrent runs không làm vỡ state machine.
+- Hybrid topology: control plane on cloud, execution plane local, event/artifact relay consistent.
+- Multi-tenant isolation: workspace A cannot read/write resources of workspace B.
+- Model Gateway fallback: primary provider down → fallback to backup transparent to agent.
+- Performance SLOs met: API command ack p95 < 500ms, SSE propagation p95 < 2s, lineage view < 2s.
+- Compliance surfaces: Approval Audit View has CSV/JSON export.
+- `sandbox_attempt_index` works correctly in multi-attempt scenarios (PP4).
+- Load test: 50 concurrent runs do not break the state machine.
 
 ---
 
@@ -143,7 +143,7 @@ Mỗi phase có **entry conditions** (cần thỏa mãn trước khi bắt đầ
 
 ### Slice 1 — Workspace + Auth + Policy Bootstrap
 
-**Capability:** User có thể đăng nhập, tạo workspace, mời member, assign role.
+**Capability:** User can log in, create a workspace, invite members, assign roles.
 
 **Services involved:** `auth-service`, `workspace-service`, `policy-service`, `api-gateway`
 
@@ -151,333 +151,333 @@ Mỗi phase có **entry conditions** (cần thỏa mãn trước khi bắt đầ
 - User registration + login (JWT).
 - Workspace CRUD.
 - Member invite + role assignment.
-- Permission resolution cho workspace:read, workspace:write.
-- `_capabilities` flags được trả về trong workspace API response.
+- Permission resolution for workspace:read, workspace:write.
+- `_capabilities` flags returned in workspace API response.
 
-**PP preconditions phải pass:**
-- PP1 ✓ (schema isolation đã có từ Phase A — orchestrator không thể write identity schema)
-- PP10 ✓ (artifact schema isolation đã có từ Phase A)
+**PP preconditions that must pass:**
+- PP1 (schema isolation already in place from Phase A — orchestrator cannot write identity schema)
+- PP10 (artifact schema isolation already in place from Phase A)
 
 **Architecture test:**
-- `test_policy_fail_closed`: khi `policy-service` unreachable → tất cả request → 403.
-- `test_capabilities_in_response`: workspace response phải có `_capabilities` object.
+- `test_policy_fail_closed`: when `policy-service` is unreachable → all requests → 403.
+- `test_capabilities_in_response`: workspace response must have `_capabilities` object.
 
 ---
 
 ### Slice 2 — Task Submit → Orchestrator → Event/Outbox
 
-**Capability:** User submit Task → Orchestrator xử lý → events được emit và persist.
+**Capability:** User submits Task → Orchestrator processes it → events are emitted and persisted.
 
 **Services involved:** `api-gateway`, `orchestrator-service`, `event-store`
 
 **Deliverables:**
 - `SubmitTask` command end-to-end.
-- Task state transition: `draft → pending` với event `task.submitted` + `task.pending`.
-- Outbox relay: event persist vào `event-store`, queryable bằng `correlation_id`.
-- Correlation ID injection tại `api-gateway` → propagate qua toàn bộ chain.
+- Task state transition: `draft → pending` with events `task.submitted` + `task.pending`.
+- Outbox relay: event persisted to `event-store`, queryable by `correlation_id`.
+- Correlation ID injection at `api-gateway` → propagated through the entire chain.
 
-**PP preconditions phải pass:**
-- PP1: `orchestrator-service` là nơi duy nhất mutate `task_status` — arch test pass.
-- PP6: `run.timed_out` + `run.cancelled` trong cùng transaction — unit test pass (có thể chưa trigger nhưng code path phải đúng).
+**PP preconditions that must pass:**
+- PP1: `orchestrator-service` is the sole entity that mutates `task_status` — arch test passes.
+- PP6: `run.timed_out` + `run.cancelled` in same transaction — unit test passes (may not be triggered yet but the code path must be correct).
 
 **Architecture test:**
-- `test_no_status_write_outside_orchestrator` pass.
-- `test_correlation_id_propagated`: mọi event từ slice này có `correlation_id` khớp với trace header.
+- `test_no_status_write_outside_orchestrator` passes.
+- `test_correlation_id_propagated`: all events from this slice have `correlation_id` matching the trace header.
 
 ---
 
 ### Slice 3 — Run/Step Lifecycle
 
-**Capability:** Orchestrator tạo Run, Step, và quản lý lifecycle đầy đủ.
+**Capability:** Orchestrator creates Run, Step, and manages the complete lifecycle.
 
 **Services involved:** `orchestrator-service`, `agent-runtime-service`, `event-store`
 
 **Deliverables:**
-- Task `pending → running`, tạo Run `queued → preparing → running`.
-- Run tạo Step sequence đơn giản (1 step).
+- Task `pending → running`, creates Run `queued → preparing → running`.
+- Run creates a simple Step sequence (1 step).
 - Step `pending → running`.
 - AgentInvocation `initializing → running`.
 - Cancel cascade: Task cancel → Run cancel → Step cancel → AgentInvocation interrupt.
-- Crash recovery: Orchestrator restart rebuild state từ event log (PP2).
-- Agent Runtime restart reconcile dangling invocation (PP3).
+- Crash recovery: Orchestrator restart rebuilds state from event log (PP2).
+- Agent Runtime restart reconciles dangling invocation (PP3).
 
-**PP preconditions phải pass:**
-- PP2: `test_orchestrator_startup_order` — outbox flush trước accept.
+**PP preconditions that must pass:**
+- PP2: `test_orchestrator_startup_order` — outbox flush before accept.
 - PP3: `test_agent_runtime_no_accept_before_reconcile`.
 - PP6: `test_timed_out_emits_cancelled`.
 
 **Architecture test:**
-- `test_cancel_cascade_inside_out`: cancel order đúng (Step trước, Run sau, Task sau).
-- `test_run_no_resume`: không có code path nào cho `run.status = 'running'` trên Run đã `failed`.
+- `test_cancel_cascade_inside_out`: cancel order is correct (Step first, Run second, Task last).
+- `test_run_no_resume`: no code path sets `run.status = 'running'` on a Run that has already `failed`.
 
 ---
 
 ### Slice 4 — Model Gateway + Agent Invocation
 
-**Capability:** AgentInvocation gọi được LLM qua model gateway, nhận response.
+**Capability:** AgentInvocation can call an LLM via model gateway and receive a response.
 
 **Services involved:** `agent-runtime-service`, `model-gateway`
 
 **Deliverables:**
-- `model-gateway` route call đến provider, return response.
-- Model version alias được resolve thành version cụ thể trước khi return (PP9).
-- Token tracking: `agent.prompt_tokens`, `agent.completion_tokens` được ghi.
-- Retry với backoff khi provider 429 hoặc 5xx (max 3 attempts).
-- AgentInvocation `running → completed` khi model trả response.
+- `model-gateway` routes calls to provider, returns response.
+- Model version alias is resolved to a specific version before returning (PP9).
+- Token tracking: `agent.prompt_tokens`, `agent.completion_tokens` are recorded.
+- Retry with backoff on provider 429 or 5xx (max 3 attempts).
+- AgentInvocation `running → completed` when model returns response.
 
-**PP preconditions phải pass:**
-- PP9: `test_model_version_not_alias` — `model-gateway` không trả alias.
+**PP preconditions that must pass:**
+- PP9: `test_model_version_not_alias` — `model-gateway` does not return an alias.
 
 **Architecture test:**
-- `test_agent_no_direct_provider_key`: sandbox và agent-runtime không có provider API key trong env.
-- `test_model_gateway_sole_exit`: không có HTTP call từ non-gateway service đến known provider domains.
+- `test_agent_no_direct_provider_key`: sandbox and agent-runtime do not have provider API keys in env.
+- `test_model_gateway_sole_exit`: no HTTP calls from non-gateway services to known provider domains.
 
 ---
 
 ### Slice 5 — Artifact Creation + Lineage
 
-**Capability:** AgentInvocation tạo Artifact qua `artifact-service`, lineage được ghi.
+**Capability:** AgentInvocation creates Artifacts via `artifact-service`, lineage is recorded.
 
-**Services involved:** `agent-runtime-service`, `artifact-service`, `model-gateway` (cho provenance)
+**Services involved:** `agent-runtime-service`, `artifact-service`, `model-gateway` (for provenance)
 
 **Deliverables:**
 - `RegisterArtifact` → `FinalizeArtifact` flow.
-- Provenance tuple validation: reject artifact nếu thiếu bất kỳ 1 trong 5 thành phần.
-- Model version trong provenance: phải là version cụ thể (PP9, DNB12).
-- `artifact.ready` event emit sau khi finalize.
-- Lineage edge ghi: `generated_from` root type.
-- Checksum validation trước khi `ready`.
+- Provenance tuple validation: reject artifact if any 1 of the 5 components is missing.
+- Model version in provenance: must be a specific version (PP9, DNB12).
+- `artifact.ready` event emitted after finalization.
+- Lineage edge recorded: `generated_from` root type.
+- Checksum validation before `ready`.
 
-**PP preconditions phải pass:**
-- PP5: `test_taint_db_before_outbox` (infrastructure phải đúng dù chưa có taint trigger).
-- PP10: `test_artifact_schema_credentials` — artifact-service là duy nhất có write.
-- DNB12: model version không phải alias — validated tại `RegisterArtifact`.
+**PP preconditions that must pass:**
+- PP5: `test_taint_db_before_outbox` (infrastructure must be correct even if no taint trigger exists yet).
+- PP10: `test_artifact_schema_credentials` — artifact-service is the sole writer.
+- DNB12: model version is not an alias — validated at `RegisterArtifact`.
 
 **Architecture test:**
-- `test_artifact_provenance_complete`: `FinalizeArtifact` với missing field → 400.
-- `test_artifact_no_direct_write`: không có INSERT vào `artifact_core` từ ngoài artifact-service.
+- `test_artifact_provenance_complete`: `FinalizeArtifact` with missing field → 400.
+- `test_artifact_no_direct_write`: no INSERT into `artifact_core` from outside artifact-service.
 
 ---
 
 ### Slice 6 — SSE + Task/Run Timeline Frontend
 
-**Capability:** User xem Task Timeline và Run Timeline real-time qua SSE.
+**Capability:** User views Task Timeline and Run Timeline in real-time via SSE.
 
 **Services involved:** `sse-gateway`, `event-store`, `api-gateway`, frontend `task-monitor`
 
 **Deliverables:**
-- SSE subscription scope theo `workspace_id` và `task_id`.
-- `Last-Event-ID` reconnect không mất event.
-- Frontend: Task Timeline render đúng chronological với event chain.
-- Frontend: SSE event trigger `invalidateQueries()` — không set cache trực tiếp (FP5).
+- SSE subscription scoped by `workspace_id` and `task_id`.
+- `Last-Event-ID` reconnect without losing events.
+- Frontend: Task Timeline renders correctly in chronological order with event chain.
+- Frontend: SSE events trigger `invalidateQueries()` — do not set cache directly (FP5).
 - Frontend: `_capabilities` flags render correct buttons per task state.
-- SSE down: banner "Real-time updates paused" hiển thị rõ.
+- SSE down: banner "Real-time updates paused" displayed clearly.
 
-**PP preconditions phải pass:**
-- DNB7: `trace_id = correlation_id` — không có separate traceId generation (dependency-cruiser rule).
-- FP1–FP10 checklist pass trong code review.
+**PP preconditions that must pass:**
+- DNB7: `trace_id = correlation_id` — no separate traceId generation (dependency-cruiser rule).
+- FP1–FP10 checklist passes in code review.
 
 **Architecture test:**
-- `test_sse_scope_isolation`: client workspace A không nhận event workspace B.
-- `test_capabilities_not_role_derived`: không có `user.role` check trong frontend component files.
+- `test_sse_scope_isolation`: client in workspace A does not receive events from workspace B.
+- `test_capabilities_not_role_derived`: no `user.role` check in frontend component files.
 
 ---
 
 ### Slice 7 — Sandbox Provisioning + Terminal
 
-**Capability:** AgentInvocation chạy được tool trong Sandbox, terminal relay hoạt động.
+**Capability:** AgentInvocation can run tools in a Sandbox, terminal relay works.
 
 **Services involved:** `execution-service`, `secret-broker`, `policy-service`
 
 **Deliverables:**
-- Sandbox provisioning với `policy_snapshot` freeze.
-- `sandbox_attempt_index` — second attempt có index 2 (PP4).
-- Secret injection qua `secret-broker` — không cầm secret value ở execution layer.
-- `/secrets` unmount trước `sandbox.terminated`.
-- Egress deny-by-default: tool call đến unlisted domain bị block + `security.violation` emit.
-- Terminal relay: frontend terminal app → api-gateway → execution-service (không direct WebSocket).
+- Sandbox provisioning with `policy_snapshot` freeze.
+- `sandbox_attempt_index` — second attempt has index 2 (PP4).
+- Secret injection via `secret-broker` — no secret values held at the execution layer.
+- `/secrets` unmounted before `sandbox.terminated`.
+- Egress deny-by-default: tool call to unlisted domain is blocked + `security.violation` emitted.
+- Terminal relay: frontend terminal app → api-gateway → execution-service (no direct WebSocket).
 
-**PP preconditions phải pass:**
+**PP preconditions that must pass:**
 - PP4: `test_sandbox_attempt_index_required`.
-- PP7: `test_tool_idempotent_flag_required` — mọi tool có `idempotent` flag.
+- PP7: `test_tool_idempotent_flag_required` — all tools have `idempotent` flag.
 
 **Architecture test:**
-- `test_sandbox_policy_snapshot_frozen`: policy_snapshot không thay đổi sau provisioning.
-- `test_secrets_unmounted_before_terminated`: `sandbox.terminated` event chỉ emit sau `/secrets` unmount.
-- `test_terminal_no_direct_socket` (frontend arch test): không có `new WebSocket(sandboxUrl)` trong terminal module.
+- `test_sandbox_policy_snapshot_frozen`: policy_snapshot does not change after provisioning.
+- `test_secrets_unmounted_before_terminated`: `sandbox.terminated` event is only emitted after `/secrets` unmount.
+- `test_terminal_no_direct_socket` (frontend arch test): no `new WebSocket(sandboxUrl)` in terminal module.
 
 ---
 
 ### Slice 8 — Approval + Human-in-the-loop
 
-**Capability:** AgentInvocation có thể pause để chờ human approval, timeout đúng.
+**Capability:** AgentInvocation can pause to await human approval, timeout works correctly.
 
 **Services involved:** `orchestrator-service`, `notification-service`, frontend `approval-center`
 
 **Deliverables:**
-- Step chuyển `running → waiting_approval` khi agent emit approval request.
-- `notification-service` gửi notification đến approver.
-- Dedup: cùng `approval_id` không gửi hai lần.
-- Human approve → Step resume.
-- Human reject → Step cancel cascade.
-- Timeout: approval không có decision sau `timeout_at` → `cancelled` — **watcher không phụ thuộc scheduler** (PP8).
-- `run.timed_out` → `run.cancelled` trong cùng outbox transaction (PP6).
+- Step transitions `running → waiting_approval` when agent emits approval request.
+- `notification-service` sends notification to approver.
+- Dedup: same `approval_id` does not trigger two sends.
+- Human approves → Step resumes.
+- Human rejects → Step cancel cascade.
+- Timeout: approval with no decision after `timeout_at` → `cancelled` — **watcher does not depend on scheduler** (PP8).
+- `run.timed_out` → `run.cancelled` in same outbox transaction (PP6).
 
-**PP preconditions phải pass:**
+**PP preconditions that must pass:**
 - PP6: `test_timed_out_emits_cancelled`.
 - PP8: `test_approval_timeout_defensive_check`.
 
 **Architecture test:**
-- `test_approval_dedup`: hai notification attempt cho cùng `approval_id` → chỉ một delivered.
-- `test_timeout_without_scheduler`: giả scheduler down, event trigger vẫn resolve timeout.
+- `test_approval_dedup`: two notification attempts for same `approval_id` → only one delivered.
+- `test_timeout_without_scheduler`: simulate scheduler down, event trigger still resolves timeout.
 
 ---
 
 ### Slice 9 — Failure Recovery + Taint + Investigation Surfaces
 
-**Capability:** System xử lý đúng failure, taint propagate, investigation surfaces hoạt động.
+**Capability:** System handles failure correctly, taint propagates, investigation surfaces work.
 
-**Services involved:** Tất cả service liên quan, frontend `investigation/`
+**Services involved:** All related services, frontend `investigation/`
 
 **Deliverables:**
-- Taint: `artifact_service` write taint flag **trước** outbox emit (PP5, DNB11).
-- Taint propagation qua lineage edges.
-- Tainted artifact: download blocked, investigation surface hiển thị taint origin.
+- Taint: `artifact_service` writes taint flag **before** outbox emit (PP5, DNB11).
+- Taint propagation through lineage edges.
+- Tainted artifact: download blocked, investigation surface displays taint origin.
 - Policy violation cascade: violation → interrupt invocation → terminate sandbox → taint artifact.
-- Rerun: Run failed → human triggers Rerun → new Run, run cũ vẫn `failed` (DNB1).
-- Artifact Lineage View: load < 2 giây.
-- Taint Investigation View: hiển thị propagation path + blocked downloads.
+- Rerun: Run failed → human triggers Rerun → new Run, old Run remains `failed` (DNB1).
+- Artifact Lineage View: loads within < 2 seconds.
+- Taint Investigation View: displays propagation path + blocked downloads.
 - Approval Audit View: queryable, exportable.
-- Degraded mode: `policy-service` down → 403 all requests, banner hiển thị.
+- Degraded mode: `policy-service` down → 403 all requests, banner displayed.
 
-**PP preconditions phải pass:**
+**PP preconditions that must pass:**
 - PP5: `test_taint_db_before_outbox`.
 - DNB1: `test_run_no_resume`.
 - DNB11: taint write order enforced.
 
 **Architecture test:**
-- `test_taint_propagation_downstream_only`: taint không lan ngược lên parent.
-- `test_policy_down_fail_closed`: mock policy-service down → tất cả request → 403.
-- `test_degraded_mode_banner`: SSE down → frontend hiển thị degraded indicator.
+- `test_taint_propagation_downstream_only`: taint does not propagate upstream to parent.
+- `test_policy_down_fail_closed`: mock policy-service down → all requests → 403.
+- `test_degraded_mode_banner`: SSE down → frontend displays degraded indicator.
 
 ---
 
 ## 5. Architecture Gates
 
-Gates là checkpoints đo được. Không gate nào có thể bị skip hay deferred.
+Gates are measurable checkpoints. No gate may be skipped or deferred.
 
 ### Gate 1 — No Hidden Bypass
 
-**Thời điểm:** Sau Slice 3 (cuối Phase B đầu).
+**Timing:** After Slice 3 (early Phase B).
 
 **Pass conditions:**
-- `test_no_status_write_outside_orchestrator` pass.
-- `test_artifact_no_direct_write` pass.
-- `test_agent_no_direct_provider_key` pass.
+- `test_no_status_write_outside_orchestrator` passes.
+- `test_artifact_no_direct_write` passes.
+- `test_agent_no_direct_provider_key` passes.
 - `dependency-cruiser` 0 violations.
 - `import-linter` 0 violations.
-- Không có cross-schema FK trong bất kỳ migration nào.
+- No cross-schema FK in any migration.
 
-**Ý nghĩa:** Không có service nào có thể bypass state machine, artifact isolation, hay model gateway — bằng cách nào đó.
+**Significance:** No service can bypass the state machine, artifact isolation, or model gateway — by any means.
 
 ---
 
 ### Gate 2 — Reproducible Artifact Path
 
-**Thời điểm:** Sau Slice 5.
+**Timing:** After Slice 5.
 
 **Pass conditions:**
-- `test_artifact_provenance_complete` pass — thiếu field → reject.
-- `test_model_version_not_alias` pass.
-- Mỗi artifact `ready` có đủ 5 thành phần trong provenance tuple.
-- Lineage DAG không có cycle (`test_lineage_cycle_rejected`).
-- `artifact.tainted` event luôn có `artifact.tainted = true` trong DB **trước** event được emit.
+- `test_artifact_provenance_complete` passes — missing field → reject.
+- `test_model_version_not_alias` passes.
+- Every artifact in `ready` state has all 5 components in provenance tuple.
+- Lineage DAG has no cycles (`test_lineage_cycle_rejected`).
+- `artifact.tainted` event always has `artifact.tainted = true` in DB **before** the event is emitted.
 
-**Ý nghĩa:** Bất kỳ artifact nào hệ sinh ra đều có thể bị truy vết đầy đủ và tái tạo.
+**Significance:** Any artifact produced by the system can be fully traced and reproduced.
 
 ---
 
 ### Gate 3 — Recovery-Safe Orchestration
 
-**Thời điểm:** Cuối Phase B / đầu Phase C.
+**Timing:** End of Phase B / beginning of Phase C.
 
 **Pass conditions:**
-- `test_orchestrator_startup_order` pass — outbox flush trước accept.
-- `test_agent_runtime_no_accept_before_reconcile` pass.
-- `test_run_no_resume` pass — không có code path resume Run cũ.
-- `test_cancel_cascade_inside_out` pass.
-- `test_timed_out_emits_cancelled` pass.
-- Manual test: giả crash Orchestrator và Agent Runtime đồng thời → restart → state nhất quán.
+- `test_orchestrator_startup_order` passes — outbox flush before accept.
+- `test_agent_runtime_no_accept_before_reconcile` passes.
+- `test_run_no_resume` passes — no code path resumes an old Run.
+- `test_cancel_cascade_inside_out` passes.
+- `test_timed_out_emits_cancelled` passes.
+- Manual test: simulate simultaneous crash of Orchestrator and Agent Runtime → restart → state is consistent.
 
-**Ý nghĩa:** Hệ không mất trạng thái, không tạo zombie invocations, không có split-brain sau crash.
+**Significance:** The system does not lose state, does not create zombie invocations, and has no split-brain after crash.
 
 ---
 
 ### Gate 4 — Security Boundary Intact
 
-**Thời điểm:** Cuối Phase C.
+**Timing:** End of Phase C.
 
 **Pass conditions:**
-- `test_sandbox_policy_snapshot_frozen` pass.
-- `test_secrets_unmounted_before_terminated` pass.
-- `test_terminal_no_direct_socket` pass.
-- `test_policy_down_fail_closed` pass.
-- `test_taint_propagation_downstream_only` pass.
-- `test_capabilities_not_role_derived` pass.
-- Security violation trigger đúng cascade và taint artifact liên quan.
-- Audit trail: mọi violation có audit record với đủ fields.
+- `test_sandbox_policy_snapshot_frozen` passes.
+- `test_secrets_unmounted_before_terminated` passes.
+- `test_terminal_no_direct_socket` passes.
+- `test_policy_down_fail_closed` passes.
+- `test_taint_propagation_downstream_only` passes.
+- `test_capabilities_not_role_derived` passes.
+- Security violation correctly triggers cascade and taints related artifacts.
+- Audit trail: every violation has an audit record with all required fields.
 
-**Ý nghĩa:** Security invariants từ doc 08, 09, 10 được enforce bằng code, không chỉ bằng quy ước.
+**Significance:** Security invariants from docs 08, 09, 10 are enforced by code, not just by convention.
 
 ---
 
 ## 6. Definition of Done
 
-Áp dụng cho mọi slice, mọi PR merge vào main:
+Applies to every slice, every PR merged to main:
 
 ### 6.1 Code
 
-- [ ] Feature end-to-end hoạt động theo happy path.
-- [ ] Error paths được handle — không có silent failure.
-- [ ] Không có `TODO: fix later` trong production code path.
+- [ ] Feature works end-to-end on the happy path.
+- [ ] Error paths are handled — no silent failures.
+- [ ] No `TODO: fix later` in production code paths.
 
 ### 6.2 Tests
 
-- [ ] Unit tests cho domain logic mới.
-- [ ] Integration test cho cross-service interaction (nếu có).
-- [ ] Architecture tests liên quan đến slice này pass.
-- [ ] Infra tests liên quan pass.
+- [ ] Unit tests for new domain logic.
+- [ ] Integration tests for cross-service interaction (if applicable).
+- [ ] Architecture tests related to this slice pass.
+- [ ] Related infra tests pass.
 
 ### 6.3 Architecture Compliance
 
-- [ ] PR checklist từ doc 16 đã được check — không có item unchecked.
-- [ ] `dependency-cruiser` 0 violations sau thay đổi.
-- [ ] `import-linter` 0 violations sau thay đổi.
-- [ ] PP preconditions cho slice này pass.
+- [ ] PR checklist from doc 16 has been checked — no items unchecked.
+- [ ] `dependency-cruiser` 0 violations after changes.
+- [ ] `import-linter` 0 violations after changes.
+- [ ] PP preconditions for this slice pass.
 
 ### 6.4 Events & Audit
 
-- [ ] Mọi domain mutation cần event: outbox entry tồn tại.
-- [ ] Event type đúng naming convention.
-- [ ] Correlation ID được propagate đúng.
-- [ ] Audit record được tạo cho mọi permission decision trong slice này.
+- [ ] Every domain mutation requiring an event: outbox entry exists.
+- [ ] Event type follows naming convention.
+- [ ] Correlation ID is propagated correctly.
+- [ ] Audit record is created for every permission decision in this slice.
 
 ### 6.5 Docs
 
-- [ ] Nếu slice làm lộ inconsistency với docs 00–16: inconsistency được ghi nhận và doc được update hoặc CLARIFY note được tạo.
-- [ ] Không có architectural decision mới nào được embedded trong code mà không có doc tương ứng.
+- [ ] If slice reveals inconsistency with docs 00–16: inconsistency is noted and doc is updated or a CLARIFY note is created.
+- [ ] No new architectural decision is embedded in code without a corresponding doc.
 
 ### 6.6 Forbidden patterns
 
-- [ ] Không có pattern nào trong FP1–FP10 (doc 14) được introduce.
-- [ ] Không có pattern nào trong Forbidden Recovery Actions FR1–FR10 (doc 12) được introduce.
-- [ ] Không có DNB1–DNB12 bị vi phạm.
+- [ ] No pattern from FP1–FP10 (doc 14) is introduced.
+- [ ] No pattern from Forbidden Recovery Actions FR1–FR10 (doc 12) is introduced.
+- [ ] No DNB1–DNB12 is violated.
 
 ### 6.7 Observability
 
-- [ ] Span attributes đúng theo doc 11 mục 3.4 cho loại span được thêm.
-- [ ] Error path emit đúng event.
-- [ ] Alert rules liên quan được kiểm tra (nếu slice thêm failure mode mới).
+- [ ] Span attributes follow doc 11 section 3.4 for the span type being added.
+- [ ] Error paths emit correct events.
+- [ ] Related alert rules are verified (if slice adds a new failure mode).
 
 ---
 
@@ -523,39 +523,39 @@ Phase D
 
 ## 8. Anti-patterns to Avoid at Roadmap Level
 
-Những sai lầm phổ biến trong execution mà roadmap này chủ động cấm:
+Common execution mistakes that this roadmap proactively prohibits:
 
 | Anti-pattern | Consequence | Rule |
 |---|---|---|
-| Build toàn bộ một layer trước khi build layer tiếp | Không có end-to-end verify sớm; bugs found late | Vertical slices only |
-| Defer PP compliance đến "hardening sprint" | PP là debt không trả được sau khi codebase đã lớn | PP preconditions block merge |
-| Merge code "mostly working" vào main | DoD bị erode dần | DoD check bắt buộc |
-| "Refactor architecture sau khi có MVP" | Architecture sau MVP không refactor được cleanly | Architecture-first, không MVP-first |
-| Skip gate review vì "deadline" | Gate violations tích lũy; không detect được trước khi Phase D | Gates không thể skip hay defer |
-| Frontend team build UI trước khi service API stable | Frontend kéo ngược backend | Slice order bắt buộc: backend trước |
-| Một developer own nhiều bounded context | Knowledge silo; service boundary erode | Mỗi service có clear owner |
+| Build an entire layer before building the next | No early end-to-end verification; bugs found late | Vertical slices only |
+| Defer PP compliance to a "hardening sprint" | PPs are debt that cannot be repaid after the codebase grows | PP preconditions block merge |
+| Merge "mostly working" code into main | DoD erodes gradually | DoD check is mandatory |
+| "Refactor architecture after we have an MVP" | Architecture after MVP cannot be refactored cleanly | Architecture-first, not MVP-first |
+| Skip gate review because of "deadline" | Gate violations accumulate; not detected before Phase D | Gates cannot be skipped or deferred |
+| Frontend team builds UI before service API is stable | Frontend pulls backend backward | Slice order is mandatory: backend first |
+| One developer owns multiple bounded contexts | Knowledge silos; service boundaries erode | Each service has a clear owner |
 
 ---
 
-## 9. Điểm để ngỏ có chủ đích
+## 9. Intentionally Deferred Decisions
 
-| Điểm | Lý do chưa khóa |
+| Decision | Reason for deferral |
 |---|---|
-| Thời gian cụ thể mỗi slice | Phụ thuộc team size, không thể khóa mà không biết headcount |
-| Sprint/iteration structure | Phụ thuộc team's working style |
-| External dependency schedule (cloud infra, provider contracts) | Nằm ngoài tầm kiểm soát của kiến trúc |
-| Feature prioritization trong Phase D | Phase D là expansion — thứ tự phụ thuộc vào deployment target thực tế |
-| Load testing thresholds cụ thể | Cần baseline từ Phase C workload thực |
+| Specific time per slice | Depends on team size, cannot be locked without knowing headcount |
+| Sprint/iteration structure | Depends on team's working style |
+| External dependency schedule (cloud infra, provider contracts) | Outside the control of architecture |
+| Feature prioritization within Phase D | Phase D is expansion — order depends on actual deployment target |
+| Specific load testing thresholds | Needs baseline from Phase C actual workload |
 
 ---
 
-## 10. Kết luận Bộ Architecture Docs 00–17
+## 10. Conclusion of Architecture Docs 00–17
 
-Bộ tài liệu 00–17 đã khóa:
+Docs 00–17 have locked:
 
-| Nhóm | Docs | Nội dung |
+| Group | Docs | Content |
 |---|---|---|
-| Vision & Principles | 00, 01, 02, 03 | Tuyên ngôn, goals, invariants, bounded contexts |
+| Vision & Principles | 00, 01, 02, 03 | Manifesto, goals, invariants, bounded contexts |
 | Domain & Lifecycle | 04, 05, 06, 07 | Entity model, state machines, event contracts, API contracts |
 | Security & Trust | 08, 09 | Sandbox security, permission model |
 | Data & Observability | 10, 11 | Artifact lineage, observability model |
@@ -565,4 +565,4 @@ Bộ tài liệu 00–17 đã khóa:
 | Execution | 16, 17 | Repo conventions, implementation roadmap |
 | Gate Review | GR | Cross-doc consistency, pressure points, DNB list |
 
-Team có thể bắt đầu Phase A ngay khi doc này được chốt.
+The team can begin Phase A as soon as this document is finalized.

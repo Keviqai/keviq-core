@@ -198,7 +198,7 @@ Open **http://localhost:3000** — log in and create your first workspace.
 | **Domain** | orchestrator, agent-runtime, artifact, execution | Task lifecycle, agent tool loops, artifact CRUD + provenance, sandboxed execution |
 | **Infrastructure** | event-store, model-gateway, audit, notification, secret-broker, telemetry | Event sourcing, LLM routing, audit trail, alerts, encrypted secrets, metrics |
 
-> **18 architecture specification documents** cover every design decision. See the [Documentation Index](docs/docs-index.md).
+> **18 architecture specification documents** cover every design decision. See the [Architecture Overview](docs/architecture-overview.md) for a visual introduction or the [Documentation Index](docs/docs-index.md) for the full set.
 
 ### Key design decisions
 
@@ -298,7 +298,8 @@ cd apps/web && pnpm dev                 # Frontend dev server (port 3000)
 
 | Document | Description |
 |----------|-------------|
-| [Documentation Index](docs/docs-index.md) | Navigation hub — start here |
+| [Architecture Overview](docs/architecture-overview.md) | Visual introduction with Mermaid diagram — start here |
+| [Documentation Index](docs/docs-index.md) | Navigation hub for all 18 architecture specs |
 | [Architectural Invariants](docs/02-architectural-invariants.md) | 15 rules the system must never violate |
 | [API Contracts](docs/07-api-contracts.md) | Full REST API specification |
 | [State Machines](docs/05-state-machines.md) | Task, run, artifact lifecycle models |

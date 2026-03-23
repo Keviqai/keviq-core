@@ -1,223 +1,223 @@
 # 08 — Sandbox Security Model
 
-**Trạng thái:** Draft v1.0  
-**Phụ thuộc:** 02 Architectural Invariants, 04 Core Domain Model, 05 State Machines, 06 Event Contracts, 07 API Contracts  
-**Nguyên tắc lớn nhất:** Sandbox không phải "môi trường chạy tiện lợi" — nó là **security boundary chuẩn** của toàn hệ. Mọi thứ bên trong sandbox phải được coi là untrusted cho đến khi policy cho phép tường minh.
+**Status:** Draft v1.0
+**Dependencies:** 02 Architectural Invariants, 04 Core Domain Model, 05 State Machines, 06 Event Contracts, 07 API Contracts
+**Core Principle:** The Sandbox is not a "convenient execution environment" — it is the **canonical security boundary** of the entire system. Everything inside a sandbox must be treated as untrusted until explicitly permitted by policy.
 
 ---
 
 ## 1. Threat Model
 
-Hệ thống phải chống các nhóm mối đe dọa sau. Đây là danh sách đóng — mọi quyết định thiết kế trong doc này đều phải trace về ít nhất một threat.
+The system must defend against the following threat groups. This is a closed list — every design decision in this document must trace back to at least one threat.
 
-### T1 — Agent lạm quyền tool
+### T1 — Agent Tool Privilege Escalation
 
-Agent bị prompt-injected hoặc tự suy luận sai, gọi tool vượt phạm vi được cấp: ghi file ngoài output dir, gọi API ngoài whitelist, spawn subprocess không được phép.
+An agent is prompt-injected or reasons incorrectly, calling tools beyond its granted scope: writing files outside the output directory, calling APIs outside the allowlist, spawning unauthorized subprocesses.
 
-**Mục tiêu phòng thủ:** Capability matrix per sandbox class, tool call enforcement tại execution layer trước khi thực thi.
+**Defense objective:** Capability matrix per sandbox class, tool call enforcement at the execution layer before execution.
 
-### T2 — Secret exfiltration
+### T2 — Secret Exfiltration
 
-Agent đọc được secret từ env/file rồi exfiltrate qua tool call, network call, artifact content, hoặc terminal output.
+An agent reads a secret from env/file and exfiltrates it via tool call, network call, artifact content, or terminal output.
 
-**Mục tiêu phòng thủ:** Secret không bao giờ expose dưới dạng plaintext trong log/artifact/terminal output. Redaction bắt buộc. Network egress kiểm soát chặt.
+**Defense objective:** Secrets are never exposed as plaintext in logs/artifacts/terminal output. Redaction is mandatory. Network egress is tightly controlled.
 
-### T3 — Lateral movement giữa workspace
+### T3 — Lateral Movement Between Workspaces
 
-Một sandbox của workspace A đọc/ghi data của workspace B qua shared filesystem, shared network, hoặc shared storage path.
+A sandbox belonging to workspace A reads/writes data of workspace B via shared filesystem, shared network, or shared storage path.
 
-**Mục tiêu phòng thủ:** Isolation namespace per workspace. Storage path không được suy đoán được theo pattern.
+**Defense objective:** Isolation namespace per workspace. Storage paths must not be guessable by pattern.
 
-### T4 — Network misuse
+### T4 — Network Misuse
 
-Agent dùng network egress của sandbox để exfiltrate data, call model ngoài (bypass model gateway), download malicious payload, hay làm C2 channel.
+An agent uses the sandbox's network egress to exfiltrate data, call external models (bypassing the model gateway), download malicious payloads, or establish a C2 channel.
 
-**Mục tiêu phòng thủ:** Deny-by-default egress. Model gateway là đường ra duy nhất cho LLM calls. Allowlist theo domain/port, không theo IP.
+**Defense objective:** Deny-by-default egress. The Model Gateway is the only exit for LLM calls. Allowlist by domain/port, not by IP.
 
-### T5 — Artifact poisoning
+### T5 — Artifact Poisoning
 
-Agent ghi nội dung độc hại vào artifact (executable, script, malformed data) rồi artifact đó được dùng làm input cho run tiếp theo.
+An agent writes malicious content into an artifact (executable, script, malformed data), and that artifact is then used as input for a subsequent run.
 
-**Mục tiêu phòng thủ:** Artifact được scan khi write. Artifact `failed` không được dùng làm input. Lineage tracking phát hiện poisoning chain.
+**Defense objective:** Artifacts are scanned on write. `failed` Artifacts cannot be used as input. Lineage tracking detects poisoning chains.
 
-### T6 — Terminal abuse
+### T6 — Terminal Abuse
 
-User mở terminal session vào sandbox rồi: escalate privilege, copy secrets ra ngoài, modify artifact ngoài output dir, hoặc giữ sandbox sống lâu hơn lifecycle cho phép.
+A user opens a terminal session into a sandbox and: escalates privileges, copies secrets out, modifies artifacts outside the output directory, or keeps the sandbox alive beyond the permitted lifecycle.
 
-**Mục tiêu phòng thủ:** Terminal là capability bị policy kiểm soát. Audit log đầy đủ. Idle timeout bắt buộc. Terminal không thấy env secrets.
+**Defense objective:** Terminal is a policy-controlled capability. Full audit logging. Mandatory idle timeout. Terminal cannot see environment secrets.
 
-### T7 — Persistence vượt lifecycle sandbox
+### T7 — Persistence Beyond Sandbox Lifecycle
 
-Sandbox terminate nhưng vẫn còn process con, mounted volume, hoặc network socket đang mở. Data nội tại sandbox rò rỉ sang lần sandbox kế tiếp.
+A sandbox terminates but child processes, mounted volumes, or open network sockets remain. Internal sandbox data leaks to the next sandbox instance.
 
-**Mục tiêu phòng thủ:** Hard cleanup khi terminate. Volume unmount + wipe. Process group kill. Network namespace teardown.
+**Defense objective:** Hard cleanup on terminate. Volume unmount + wipe. Process group kill. Network namespace teardown.
 
 ---
 
 ## 2. Isolation Model
 
-Sandbox phải cô lập theo 6 chiều sau. Thiếu bất kỳ chiều nào là lỗ hổng kiến trúc.
+A Sandbox must be isolated along the following 6 dimensions. Missing any dimension is an architectural vulnerability.
 
-### 2.1 Workspace isolation
+### 2.1 Workspace Isolation
 
-- Mỗi sandbox được gắn `workspace_id` không thể thay đổi sau khi provisioned.
-- Storage mount, network namespace, và secret binding đều scoped theo `workspace_id`.
-- Không có shared resource nào giữa sandbox của hai workspace khác nhau — kể cả image cache hay build cache.
+- Each sandbox is assigned a `workspace_id` that cannot be changed after provisioning.
+- Storage mounts, network namespaces, and secret bindings are all scoped by `workspace_id`.
+- There are no shared resources between sandboxes of two different workspaces — including image cache and build cache.
 
-### 2.2 Run isolation
+### 2.2 Run Isolation
 
-- Mỗi Run có một isolated working directory. Hai Run của cùng Task không được chia sẻ working directory.
-- `run_id` được dùng làm namespace prefix cho mọi resource được cấp phát trong Run đó.
+- Each Run has an isolated working directory. Two Runs of the same Task must not share a working directory.
+- `run_id` is used as the namespace prefix for all resources allocated within that Run.
 
-### 2.3 AgentInvocation isolation
+### 2.3 AgentInvocation Isolation
 
-- Mỗi AgentInvocation có thể có sandbox riêng hoặc dùng chung sandbox của Run tùy sandbox class.
-- Nếu nhiều AgentInvocation trong cùng Run dùng chung sandbox: filesystem phải có per-invocation scratch space riêng.
+- Each AgentInvocation may have its own sandbox or share the Run's sandbox depending on the sandbox class.
+- If multiple AgentInvocations within the same Run share a sandbox: the filesystem must have per-invocation scratch space.
 
-### 2.4 Filesystem mount
+### 2.4 Filesystem Mounts
 
-| Mount point | Quyền | Nội dung |
+| Mount Point | Permissions | Content |
 |---|---|---|
-| `/input` | read-only | RepoSnapshot, input artifact được mount vào |
-| `/output` | read-write | Output dir — agent chỉ được ghi vào đây |
-| `/tmp` | read-write | Scratch space, bị wipe khi invocation kết thúc |
-| `/tools` | read-only | Tool binary/script được hệ thống mount |
-| `/secrets` | read-only, scoped | Secret file được inject (xem mục 6) |
-| Mọi path khác | không mount | Không access filesystem host |
+| `/input` | read-only | RepoSnapshot, input artifacts mounted here |
+| `/output` | read-write | Output directory — agent may only write here |
+| `/tmp` | read-write | Scratch space, wiped when invocation ends |
+| `/tools` | read-only | Tool binaries/scripts mounted by the system |
+| `/secrets` | read-only, scoped | Secret files injected (see section 6) |
+| All other paths | not mounted | No host filesystem access |
 
-**Agent không được mount hay unmount bất kỳ path nào.** Mount list là bất biến sau khi sandbox provisioned.
+**The agent is not permitted to mount or unmount any path.** The mount list is immutable after the sandbox is provisioned.
 
-### 2.5 Process namespace
+### 2.5 Process Namespace
 
-- Sandbox chạy trong isolated PID namespace.
-- Agent process không được `fork` subprocess ngoài danh sách tool binary được phép.
-- `ptrace`, `strace`, `/proc` của host không được accessible.
-- Capability Linux bị drop toàn bộ ngoài tập tối thiểu cần cho tool execution.
+- The sandbox runs in an isolated PID namespace.
+- The agent process is not permitted to `fork` subprocesses outside the allowed tool binary list.
+- `ptrace`, `strace`, and host `/proc` are not accessible.
+- Linux capabilities are dropped entirely except the minimum set needed for tool execution.
 
-### 2.6 Network namespace
+### 2.6 Network Namespace
 
-- Mỗi sandbox có network namespace riêng.
-- Mặc định: **deny all egress và ingress**.
-- Egress chỉ được mở theo allowlist từ `network_egress_policy` của sandbox (xem mục 5).
-- Ingress không bao giờ được mở từ bên ngoài vào sandbox. Terminal session đi qua sidecar proxy, không phải inbound port.
+- Each sandbox has its own network namespace.
+- Default: **deny all egress and ingress**.
+- Egress is only opened according to the allowlist from the sandbox's `network_egress_policy` (see section 5).
+- Ingress is never opened from outside into the sandbox. Terminal sessions go through a sidecar proxy, not inbound ports.
 
 ---
 
 ## 3. Sandbox Classes
 
-Bốn sandbox class sau là tập tối thiểu bắt buộc. Deployment mode có thể thêm class nhưng không được bớt.
+The following four sandbox classes are the minimum required set. Deployment modes may add classes but must not remove any.
 
 ### 3.1 `read_only_repo`
 
-Dùng cho: code audit, static analysis, documentation generation, Q&A về codebase.
+Used for: code audit, static analysis, documentation generation, Q&A about codebases.
 
-| Capability | Cho phép |
+| Capability | Allowed |
 |---|---|
-| Đọc `/input` | ✓ |
-| Ghi `/output` | ✓ (report, structured data) |
-| Ghi `/tmp` | ✓ |
-| Chạy subprocess | ✗ |
-| Network egress | ✗ |
-| Secret injection | ✗ |
-| Terminal session | ✗ |
-| Ghi `/input` | ✗ |
+| Read `/input` | Yes |
+| Write `/output` | Yes (reports, structured data) |
+| Write `/tmp` | Yes |
+| Run subprocesses | No |
+| Network egress | No |
+| Secret injection | No |
+| Terminal session | No |
+| Write `/input` | No |
 
 ### 3.2 `code_audit`
 
-Dùng cho: chạy static analysis tool, linter, test runner read-only.
+Used for: running static analysis tools, linters, read-only test runners.
 
-| Capability | Cho phép |
+| Capability | Allowed |
 |---|---|
-| Đọc `/input` | ✓ |
-| Ghi `/output` | ✓ |
-| Ghi `/tmp` | ✓ |
-| Chạy subprocess (whitelist) | ✓ — chỉ tool trong `/tools` |
-| Network egress | ✗ (trừ package registry nếu policy cho phép) |
-| Secret injection | ✗ (trừ registry credential nếu policy cho phép) |
+| Read `/input` | Yes |
+| Write `/output` | Yes |
+| Write `/tmp` | Yes |
+| Run subprocesses (whitelist) | Yes — only tools in `/tools` |
+| Network egress | No (except package registry if policy permits) |
+| Secret injection | No (except registry credentials if policy permits) |
 | Terminal session | Policy-gated |
-| Modify `/input` | ✗ |
+| Modify `/input` | No |
 
 ### 3.3 `fix_and_patch`
 
-Dùng cho: agent viết code, sửa bug, tạo patch, chạy test với side effects.
+Used for: agent writing code, fixing bugs, creating patches, running tests with side effects.
 
-| Capability | Cho phép |
+| Capability | Allowed |
 |---|---|
-| Đọc `/input` | ✓ |
-| Ghi `/output` | ✓ |
-| Ghi `/tmp` | ✓ |
-| Chạy subprocess (whitelist) | ✓ |
+| Read `/input` | Yes |
+| Write `/output` | Yes |
+| Write `/tmp` | Yes |
+| Run subprocesses (whitelist) | Yes |
 | Network egress | Policy-gated (package registry, git provider) |
 | Secret injection | Policy-gated |
 | Terminal session | Policy-gated |
-| Modify `/input` | ✗ — output là patch/diff, không modify source |
+| Modify `/input` | No — output is a patch/diff, source is not modified |
 
 ### 3.4 `browser_task`
 
-Dùng cho: agent điều khiển browser, web research, form automation.
+Used for: agent controlling a browser, web research, form automation.
 
-| Capability | Cho phép |
+| Capability | Allowed |
 |---|---|
-| Đọc `/input` | ✓ |
-| Ghi `/output` | ✓ (screenshot, structured data, page content) |
-| Ghi `/tmp` | ✓ |
-| Chạy subprocess | ✓ — browser process only |
-| Network egress | Policy-gated, domain allowlist bắt buộc |
-| Secret injection | Policy-gated (login credential) |
-| Terminal session | ✗ — không có terminal trong browser sandbox |
-| Clipboard access host | ✗ |
-| Download to host filesystem | ✗ — chỉ ghi vào `/output` |
+| Read `/input` | Yes |
+| Write `/output` | Yes (screenshots, structured data, page content) |
+| Write `/tmp` | Yes |
+| Run subprocesses | Yes — browser process only |
+| Network egress | Policy-gated, domain allowlist mandatory |
+| Secret injection | Policy-gated (login credentials) |
+| Terminal session | No — no terminal in browser sandbox |
+| Host clipboard access | No |
+| Download to host filesystem | No — may only write to `/output` |
 
-**Browser sandbox có egress policy riêng** — không dùng chung policy của code sandbox (xem mục 5.5).
+**The browser sandbox has its own egress policy** — it does not share the code sandbox policy (see section 5.5).
 
 ---
 
 ## 4. Filesystem Policy
 
-### 4.1 Input mounting
+### 4.1 Input Mounting
 
-- `/input` được mount từ `RepoSnapshot.snapshot_storage_ref` hoặc `Artifact.storage_ref` đã `ready`.
-- Mount là **read-only hard mount** — kernel-level, không thể override từ trong sandbox.
-- Artifact `failed` không được mount làm `/input`. Bất kỳ attempt nào phải bị reject ở provisioning.
-- Snapshot execution (tạo `RepoSnapshot` từ git remote) diễn ra trong `read_only_repo` sandbox không có internet egress — chỉ được phép pull từ git provider đã được whitelist trong policy.
+- `/input` is mounted from `RepoSnapshot.snapshot_storage_ref` or a `ready` `Artifact.storage_ref`.
+- The mount is a **read-only hard mount** — kernel-level, cannot be overridden from within the sandbox.
+- A `failed` Artifact must not be mounted as `/input`. Any such attempt must be rejected at provisioning.
+- Snapshot execution (creating a `RepoSnapshot` from a git remote) occurs within a `read_only_repo` sandbox with no internet egress — only pulling from git providers whitelisted in the policy is permitted.
 
-### 4.2 Output directory
+### 4.2 Output Directory
 
-- `/output` là thư mục duy nhất agent được phép tạo file artifact.
-- Sau khi AgentInvocation `completed`, Artifact service scan toàn bộ `/output` và tạo `Artifact` record cho mỗi file.
-- File trong `/output` không được executable (bit execute bị strip khi Artifact service đọc).
-- Kích thước `/output` bị giới hạn theo `resource_limits.max_output_bytes`.
+- `/output` is the only directory where the agent is permitted to create artifact files.
+- After an AgentInvocation `completed`, the Artifact service scans the entire `/output` and creates an `Artifact` record for each file.
+- Files in `/output` are not executable (the execute bit is stripped when the Artifact service reads them).
+- The size of `/output` is limited by `resource_limits.max_output_bytes`.
 
-### 4.3 Scratch space `/tmp`
+### 4.3 Scratch Space `/tmp`
 
-- `/tmp` bị wipe hoàn toàn khi AgentInvocation kết thúc (dù `completed` hay `interrupted`).
-- Nội dung `/tmp` không bao giờ được promote thành Artifact.
-- Nội dung `/tmp` không được include trong log.
+- `/tmp` is completely wiped when the AgentInvocation ends (whether `completed` or `interrupted`).
+- Content in `/tmp` is never promoted to an Artifact.
+- Content in `/tmp` is not included in logs.
 
-### 4.4 Xử lý partial artifact khi sandbox terminate giữa chừng
+### 4.4 Handling Partial Artifacts When a Sandbox Terminates Mid-operation
 
-- Nếu sandbox bị terminate trong khi đang ghi `/output`: Artifact service đọc partial content, tạo Artifact record với `artifact_status = failed`, `metadata.partial_data_available = true`.
-- Partial artifact không được dùng làm input. Được giữ lại cho debug.
-- Checksum của partial artifact để `null`.
+- If the sandbox is terminated while writing to `/output`: the Artifact service reads the partial content, creates an Artifact record with `artifact_status = failed`, `metadata.partial_data_available = true`.
+- Partial artifacts cannot be used as input. They are retained for debugging.
+- The checksum of a partial artifact is set to `null`.
 
 ---
 
 ## 5. Network Egress Policy
 
-### 5.1 Nguyên tắc: Deny by default
+### 5.1 Principle: Deny by Default
 
-Mọi sandbox bắt đầu với **zero egress**. Egress chỉ được mở khi policy tường minh cho phép. Không có "default allow" ở bất kỳ sandbox class nào.
+Every sandbox starts with **zero egress**. Egress is only opened when policy explicitly permits it. There is no "default allow" in any sandbox class.
 
-### 5.2 Model Gateway là đường ra duy nhất cho LLM calls
+### 5.2 Model Gateway Is the Only Exit for LLM Calls
 
-- Agent không được gọi trực tiếp bất kỳ model provider API nào (OpenAI, Anthropic, etc.) từ trong sandbox.
-- Mọi model call phải đi qua **Model Gateway** — một service nội bộ với auth, rate limit, cost tracking, và audit.
-- Nếu sandbox cần gọi model (nested agent call): phải đi qua Model Gateway endpoint nội bộ, không phải internet.
-- Sandbox không bao giờ nhận API key của model provider trực tiếp.
+- The agent is not permitted to directly call any model provider API (OpenAI, Anthropic, etc.) from within the sandbox.
+- All model calls must go through the **Model Gateway** — an internal service with auth, rate limiting, cost tracking, and audit.
+- If the sandbox needs to call a model (nested agent call): it must go through the internal Model Gateway endpoint, not the internet.
+- The sandbox never receives model provider API keys directly.
 
-### 5.3 Allowlist structure
+### 5.3 Allowlist Structure
 
-Egress allowlist được định nghĩa trong `sandbox.network_egress_policy` theo schema sau:
+The egress allowlist is defined in `sandbox.network_egress_policy` using the following schema:
 
 ```json
 {
@@ -243,257 +243,257 @@ Egress allowlist được định nghĩa trong `sandbox.network_egress_policy` t
 }
 ```
 
-**Quy tắc:**
-- Allowlist theo domain, không theo IP (IP có thể thay đổi, dễ bị bypass).
-- Port 22 (SSH) không bao giờ được phép trong sandbox.
-- Wildcard domain (`*.example.com`) chỉ được dùng khi không thể enumerate, và phải có comment giải thích lý do.
+**Rules:**
+- Allowlist by domain, not by IP (IPs can change and are easily bypassed).
+- Port 22 (SSH) is never permitted in sandboxes.
+- Wildcard domains (`*.example.com`) may only be used when enumeration is not possible, and must include a comment explaining the reason.
 
-### 5.4 Egress policy theo sandbox class
+### 5.4 Egress Policy by Sandbox Class
 
-| Sandbox class | Default egress | Có thể mở thêm qua policy |
+| Sandbox Class | Default Egress | Can Be Extended via Policy |
 |---|---|---|
-| `read_only_repo` | ✗ không có | ✗ không |
-| `code_audit` | ✗ không có | Package registry (opt-in) |
-| `fix_and_patch` | ✗ không có | Package registry, git provider (opt-in) |
-| `browser_task` | ✗ không có | Domain allowlist bắt buộc khi dùng |
+| `read_only_repo` | None | No |
+| `code_audit` | None | Package registry (opt-in) |
+| `fix_and_patch` | None | Package registry, git provider (opt-in) |
+| `browser_task` | None | Domain allowlist mandatory when used |
 
-### 5.5 Browser sandbox egress
+### 5.5 Browser Sandbox Egress
 
-Browser sandbox có nhu cầu egress đặc biệt — agent cần truy cập web. Tuy nhiên:
+The browser sandbox has special egress requirements — the agent needs web access. However:
 
-- Allowlist domain vẫn bắt buộc — không có "browse anywhere".
-- Download từ web chỉ được lưu vào `/output` — không về host filesystem.
-- Browser process không được make background requests ngoài tab đang active (no background fetch, no WebSocket đến external domain không có trong allowlist).
-- Credential nhập vào browser form phải được inject qua secret binding — không được user/agent gõ thủ công trong task config.
+- A domain allowlist is still mandatory — there is no "browse anywhere".
+- Downloads from the web may only be saved to `/output` — not to the host filesystem.
+- The browser process must not make background requests outside the active tab (no background fetch, no WebSocket to external domains not on the allowlist).
+- Credentials entered into browser forms must be injected via secret binding — they must not be manually typed by the user/agent in the task config.
 
 ---
 
 ## 6. Secret Injection Model
 
-### 6.1 Nguyên tắc bất biến
+### 6.1 Immutable Principles
 
-- Secret không bao giờ đi qua frontend.
-- Secret không bao giờ xuất hiện trong log, artifact content, terminal output, hay event payload.
-- Secret không bao giờ được lưu trong `run_config`, `step.input_snapshot`, hay `agent_invocation.input_messages`.
-- Chỉ Sandbox provisioning layer được phép resolve `SecretBinding.secret_ref` thành giá trị thật.
+- Secrets never pass through the frontend.
+- Secrets never appear in logs, artifact content, terminal output, or event payloads.
+- Secrets are never stored in `run_config`, `step.input_snapshot`, or `agent_invocation.input_messages`.
+- Only the Sandbox provisioning layer is permitted to resolve `SecretBinding.secret_ref` to its actual value.
 
-### 6.2 Secret binding scope
+### 6.2 Secret Binding Scope
 
-| Scope | Ý nghĩa | Ai được phép bind |
+| Scope | Meaning | Who Can Bind |
 |---|---|---|
-| `workspace` | Secret dùng cho mọi run trong workspace | Workspace admin |
-| `task` | Secret chỉ dùng cho một task cụ thể | Task creator (nếu có quyền) |
-| `agent` | Secret chỉ inject cho agent cụ thể | Workspace admin |
+| `workspace` | Secret used for all runs in the workspace | Workspace admin |
+| `task` | Secret used only for a specific task | Task creator (if authorized) |
+| `agent` | Secret injected only for a specific agent | Workspace admin |
 
-### 6.3 Thời hạn secret
+### 6.3 Secret Lifetime
 
-Secret binding là **temporary-by-default** trong sandbox:
+Secret bindings are **temporary-by-default** within a sandbox:
 
-- Secret được inject khi sandbox `provisioning`.
-- Secret bị revoke khi sandbox `terminating` — không giữ lại sau terminate.
-- Secret không được copy ra `/output` hay `/tmp` bởi bất kỳ tool nào.
+- Secrets are injected when the sandbox is `provisioning`.
+- Secrets are revoked when the sandbox is `terminating` — not retained after termination.
+- Secrets must not be copied to `/output` or `/tmp` by any tool.
 
-### 6.4 Cơ chế inject
+### 6.4 Injection Mechanisms
 
-| Phương thức | Dùng cho | Ghi chú |
+| Method | Used For | Notes |
 |---|---|---|
-| Environment variable | API key, token ngắn | Chỉ visible trong process env, không expose qua `/proc/environ` ra ngoài namespace |
-| File trong `/secrets` | Certificate, config file | Read-only mount, không executable |
-| Sidecar token broker | OAuth flow, credential rotation | Token broker là sidecar process trong sandbox namespace, agent gọi local endpoint |
+| Environment variable | API keys, short-lived tokens | Only visible in process env, not exposed via `/proc/environ` outside the namespace |
+| File in `/secrets` | Certificates, config files | Read-only mount, not executable |
+| Sidecar token broker | OAuth flows, credential rotation | Token broker is a sidecar process in the sandbox namespace, agent calls a local endpoint |
 
-**Không dùng:** command line argument (visible trong `ps`), hardcode trong tool binary.
+**Not used:** command line arguments (visible in `ps`), hardcoded in tool binaries.
 
-### 6.5 Redaction rules
+### 6.5 Redaction Rules
 
-Bắt buộc trong toàn bộ hệ thống:
+Mandatory across the entire system:
 
-- Mọi log pipeline đều chạy secret redactor trước khi ghi.
-- Redactor dùng danh sách pattern từ SecretBinding (không phải giá trị thật) để detect và replace bằng `[REDACTED]`.
-- Nếu redactor không chạy được: log phải bị drop, không ghi partial log có thể chứa secret.
-- `agent_invocation.output_messages` không được chứa chuỗi khớp với bất kỳ secret pattern nào.
+- All log pipelines run a secret redactor before writing.
+- The redactor uses pattern lists from SecretBinding (not actual values) to detect and replace with `[REDACTED]`.
+- If the redactor cannot run: the log must be dropped, not written as a partial log that may contain secrets.
+- `agent_invocation.output_messages` must not contain strings matching any secret pattern.
 
 ---
 
 ## 7. Policy Enforcement Points
 
-Enforcement diễn ra tại 7 điểm sau. Thiếu bất kỳ điểm nào là lỗ hổng.
+Enforcement occurs at the following 7 points. Missing any point is a vulnerability.
 
-| Enforcement point | Ai enforce | Khi nào |
+| Enforcement Point | Enforced By | When |
 |---|---|---|
-| **EP1: Trước khi cấp sandbox** | Orchestrator + Policy service | Khi Run chuyển `queued → preparing` |
-| **EP2: Trước khi attach tool** | Execution layer | Khi agent dispatch tool call |
-| **EP3: Trước khi mở network** | Network proxy | Khi sandbox process mở connection |
-| **EP4: Trước khi attach terminal** | Terminal sidecar | Khi API nhận `POST /runs/:id/terminal` |
-| **EP5: Trước khi mount secret** | Secret injection service | Trong quá trình provisioning |
-| **EP6: Trước khi phát download URL** | Artifact service | Khi API nhận `GET /artifacts/:id/download` |
-| **EP7: Khi artifact được write** | Artifact service | Khi `/output` được scan sau invocation |
+| **EP1: Before provisioning sandbox** | Orchestrator + Policy service | When Run transitions `queued → preparing` |
+| **EP2: Before attaching tool** | Execution layer | When agent dispatches a tool call |
+| **EP3: Before opening network** | Network proxy | When a sandbox process opens a connection |
+| **EP4: Before attaching terminal** | Terminal sidecar | When API receives `POST /runs/:id/terminal` |
+| **EP5: Before mounting secret** | Secret injection service | During provisioning |
+| **EP6: Before issuing download URL** | Artifact service | When API receives `GET /artifacts/:id/download` |
+| **EP7: When artifact is written** | Artifact service | When `/output` is scanned after invocation |
 
-### EP1 chi tiết — cấp sandbox
+### EP1 Detail — Sandbox Provisioning
 
-Orchestrator phải kiểm tra trước khi tạo sandbox:
-- Sandbox class có phù hợp với `task_type` không.
-- Workspace có đang trong giới hạn resource không (concurrent sandboxes, total cost).
-- Policy hiện tại có cho phép loại task này không.
-- Nếu fail: Run chuyển `preparing → failed`, không tạo sandbox.
+The Orchestrator must check before creating a sandbox:
+- Whether the sandbox class is appropriate for the `task_type`.
+- Whether the workspace is within resource limits (concurrent sandboxes, total cost).
+- Whether the current policy permits this type of task.
+- If the check fails: the Run transitions `preparing → failed`, no sandbox is created.
 
-### EP4 chi tiết — terminal
+### EP4 Detail — Terminal
 
-Terminal không phải "quyền UI" — đây là **sandbox capability được cấp qua policy**:
-- Policy phải tường minh có `terminal: allowed` cho sandbox class tương ứng.
-- Mỗi terminal session có `session_id` riêng.
-- Terminal sidecar proxy toàn bộ input/output — không có direct attach vào container TTY.
-- Idle timeout: 5 phút mặc định, configurable trong policy, không thể tắt.
+A terminal is not a "UI privilege" — it is a **sandbox capability granted via policy**:
+- The policy must explicitly contain `terminal: allowed` for the corresponding sandbox class.
+- Each terminal session has its own `session_id`.
+- The terminal sidecar proxies all input/output — there is no direct attach to the container TTY.
+- Idle timeout: 5 minutes by default, configurable in policy, cannot be disabled.
 
-### EP6 chi tiết — download URL
+### EP6 Detail — Download URL
 
-- Signed URL phải chịu policy theo `workspace_id` — URL của workspace A không hoạt động cho workspace B.
-- URL không được dự đoán được từ `artifact_id` hay `run_id`. URL phải là signed token opaque.
-- TTL của signed URL: 15 phút mặc định.
-- Artifact nhạy cảm (`metadata.sensitivity = high`) chỉ cho phép download trong network nội bộ nếu `deployment_mode = local` hoặc `hybrid`.
+- The signed URL must be policy-scoped by `workspace_id` — a URL from workspace A must not work for workspace B.
+- The URL must not be predictable from `artifact_id` or `run_id`. The URL must be an opaque signed token.
+- Default TTL for signed URLs: 15 minutes.
+- Sensitive artifacts (`metadata.sensitivity = high`) may only be downloaded within the internal network if `deployment_mode = local` or `hybrid`.
 
 ---
 
 ## 8. Terminal Security
 
-Terminal session là capability rủi ro cao nhất — phải có toàn bộ các ràng buộc sau.
+A terminal session is the highest-risk capability — all of the following constraints must apply.
 
-### 8.1 Mặc định
+### 8.1 Defaults
 
-- Terminal mặc định là **read-only shell** (không có write capability vào filesystem ngoài `/tmp`).
-- Write vào `/output` qua terminal phải được policy tường minh cho phép (`terminal_write_output: allowed`).
-- Default shell: `sh` với tập lệnh tối thiểu (no `curl`, no `wget`, no `ssh`, no `git` trừ khi sandbox class cho phép).
+- The terminal defaults to a **read-only shell** (no write capability to the filesystem outside `/tmp`).
+- Writing to `/output` via terminal must be explicitly permitted by policy (`terminal_write_output: allowed`).
+- Default shell: `sh` with a minimal command set (no `curl`, no `wget`, no `ssh`, no `git` unless the sandbox class permits it).
 
-### 8.2 Audit log
+### 8.2 Audit Log
 
-- Toàn bộ terminal I/O (stdin và stdout) phải được ghi vào audit log.
-- Audit log không bị truncate, không bị redact input (chỉ redact output theo secret pattern).
-- Audit log là append-only, scoped theo `session_id`.
-- Audit log được giữ lại sau khi sandbox terminate (không bị wipe cùng sandbox).
+- All terminal I/O (stdin and stdout) must be recorded in the audit log.
+- The audit log is not truncated, input is not redacted (only output is redacted according to secret patterns).
+- The audit log is append-only, scoped by `session_id`.
+- The audit log is retained after the sandbox terminates (not wiped with the sandbox).
 
 ### 8.3 Timeout
 
-- **Idle timeout:** 5 phút không có keystroke → session terminated.
-- **Hard timeout:** Bằng với `resource_limits.max_duration_seconds` của sandbox — terminal không thể sống lâu hơn sandbox.
-- Timeout không thể bị extend từ trong terminal session.
+- **Idle timeout:** 5 minutes without a keystroke → session terminated.
+- **Hard timeout:** Equal to the sandbox's `resource_limits.max_duration_seconds` — the terminal cannot outlive the sandbox.
+- Timeout cannot be extended from within the terminal session.
 
-### 8.4 Secret visibility
+### 8.4 Secret Visibility
 
-- Terminal process không được có secret env variable visible. Secret env được inject vào agent process, không vào terminal process.
-- `env` command trong terminal không được list secret binding names.
-- `/secrets` mount không accessible từ terminal — terminal chạy trong chroot không có `/secrets`.
+- The terminal process must not have secret environment variables visible. Secret env vars are injected into the agent process, not the terminal process.
+- The `env` command in the terminal must not list secret binding names.
+- The `/secrets` mount is not accessible from the terminal — the terminal runs in a chroot without `/secrets`.
 
-### 8.5 File transfer
+### 8.5 File Transfer
 
-- Copy từ sandbox ra ngoài: **chỉ qua `/output` → Artifact → signed URL**. Không có SCP, không có clipboard.
-- Upload từ ngoài vào sandbox qua terminal: **không được phép**.
+- Copy from sandbox to outside: **only via `/output` → Artifact → signed URL**. No SCP, no clipboard.
+- Upload from outside into the sandbox via terminal: **not permitted**.
 
 ---
 
-## 9. Lifecycle và Cleanup Semantics
+## 9. Lifecycle and Cleanup Semantics
 
-### 9.1 Khi sandbox `terminating`
+### 9.1 When Sandbox Is `terminating`
 
-Execution layer phải thực hiện theo thứ tự:
-1. Gửi SIGTERM đến toàn bộ process trong PID namespace.
-2. Chờ graceful shutdown (5 giây).
-3. Gửi SIGKILL đến process còn lại.
-4. Close tất cả network socket.
-5. Unmount tất cả volume (`/input`, `/secrets`, `/tmp`).
-6. **Wipe `/tmp`** — shred hoặc secure delete.
-7. Teardown network namespace.
-8. Teardown PID namespace.
+The Execution layer must perform the following in order:
+1. Send SIGTERM to all processes in the PID namespace.
+2. Wait for graceful shutdown (5 seconds).
+3. Send SIGKILL to remaining processes.
+4. Close all network sockets.
+5. Unmount all volumes (`/input`, `/secrets`, `/tmp`).
+6. **Wipe `/tmp`** — shred or secure delete.
+7. Tear down the network namespace.
+8. Tear down the PID namespace.
 9. Emit `sandbox.terminated`.
 
-**Thứ tự này bất biến.** Không được bỏ bước, không được đảo thứ tự.
+**This order is immutable.** No steps may be skipped, no order may be changed.
 
-### 9.2 Retained sau khi terminate
+### 9.2 Retained After Termination
 
-| Data | Retained | Nơi lưu |
+| Data | Retained | Storage Location |
 |---|---|---|
-| `/output` content | ✓ — đã promote thành Artifact trước khi terminate | Artifact storage |
-| Audit log (terminal) | ✓ | Audit log store |
-| `sandbox.terminated` event | ✓ | Event store |
-| Execution log của tool calls | ✓ — đã ghi vào Step output_snapshot | DB |
-| `/tmp` content | ✗ — wiped | — |
-| `/secrets` content | ✗ — unmounted trước khi terminate | — |
-| Process memory | ✗ | — |
+| `/output` content | Yes — promoted to Artifact before termination | Artifact storage |
+| Audit log (terminal) | Yes | Audit log store |
+| `sandbox.terminated` event | Yes | Event store |
+| Execution log of tool calls | Yes — written to Step output_snapshot | DB |
+| `/tmp` content | No — wiped | — |
+| `/secrets` content | No — unmounted before termination | — |
+| Process memory | No | — |
 
-### 9.3 Sandbox reuse
+### 9.3 Sandbox Reuse
 
-- Sandbox không được reuse giữa các AgentInvocation khác nhau khi `fix_and_patch` hoặc `browser_task`.
-- `read_only_repo` và `code_audit` có thể dùng pre-warmed sandbox pool nhưng phải thực hiện **snapshot + restore** để đảm bảo clean state giữa các invocation.
+- Sandboxes must not be reused between different AgentInvocations for `fix_and_patch` or `browser_task`.
+- `read_only_repo` and `code_audit` may use a pre-warmed sandbox pool but must perform **snapshot + restore** to ensure a clean state between invocations.
 
 ---
 
 ## 10. Violation Handling
 
-Khi policy bị vi phạm, hệ thống phải phản ứng theo thứ tự sau:
+When a policy is violated, the system must respond in the following order:
 
-### 10.1 Luồng xử lý
+### 10.1 Handling Flow
 
 ```
 Policy violation detected (EP2, EP3, EP4, EP5, EP6, EP7)
   │
-  ├── 1. Block action ngay lập tức
-  │         (tool call bị reject, network connection bị drop, terminal attach bị deny)
+  ├── 1. Block the action immediately
+  │         (tool call rejected, network connection dropped, terminal attach denied)
   │
   ├── 2. Emit security event
-  │         sandbox.policy_violation (với violation_type, detail, sandbox_id, workspace_id)
+  │         sandbox.policy_violation (with violation_type, detail, sandbox_id, workspace_id)
   │
-  ├── 3. Fail current Step
+  ├── 3. Fail the current Step
   │         step → failed, error_code = POLICY_VIOLATION
   │
-  ├── 4. Interrupt AgentInvocation
+  ├── 4. Interrupt the AgentInvocation
   │         agent_invocation → interrupted, reason = policy_violation
   │
-  ├── 5. Terminate Sandbox
+  ├── 5. Terminate the Sandbox
   │         sandbox.terminate_requested → terminating → terminated
   │         termination_reason = policy_violation
   │
-  └── 6. Artifact taint (nếu có partial output)
+  └── 6. Taint the Artifact (if partial output exists)
             artifact_status = failed
             metadata.tainted = true
             metadata.taint_reason = policy_violation
 ```
 
-### 10.2 Artifact taint
+### 10.2 Artifact Taint
 
-- Artifact bị taint không được dùng làm input cho bất kỳ Run nào.
-- Artifact bị taint không được download qua signed URL mặc định — phải có explicit override với audit log.
-- Taint không được tự động remove — chỉ Workspace admin mới có thể untaint sau review.
+- Tainted artifacts must not be used as input for any Run.
+- Tainted artifacts cannot be downloaded via signed URL by default — an explicit override with audit logging is required.
+- Taint cannot be automatically removed — only a Workspace admin can untaint after review.
 
-### 10.3 Security event
+### 10.3 Security Event
 
-`sandbox.policy_violation` là một fact event đặc biệt với các field bắt buộc:
+`sandbox.policy_violation` is a special fact event with the following mandatory fields:
 
 ```json
 {
   "violation_type": "<network_egress | tool_unauthorized | secret_access | filesystem_write | terminal_abuse>",
   "enforcement_point": "<EP1 | EP2 | EP3 | EP4 | EP5 | EP6 | EP7>",
-  "blocked_action": "<string mô tả hành động bị block>",
-  "policy_rule_name": "<tên rule trong policy bị vi phạm>",
+  "blocked_action": "<string describing the blocked action>",
+  "policy_rule_name": "<name of the policy rule that was violated>",
   "severity": "<low | medium | high | critical>"
 }
 ```
 
-- `high` và `critical` violation phải trigger alert ngoài audit log (email, webhook, hoặc ops notification tùy deployment mode).
-- `critical` violation (lateral movement attempt, secret exfiltration attempt) phải lock workspace tạm thời và yêu cầu admin review.
+- `high` and `critical` violations must trigger alerts beyond the audit log (email, webhook, or ops notification depending on deployment mode).
+- `critical` violations (lateral movement attempt, secret exfiltration attempt) must temporarily lock the workspace and require admin review.
 
 ---
 
-## 11. Điểm để ngỏ có chủ đích
+## 11. Intentionally Deferred Decisions
 
-| Điểm | Lý do chưa khóa |
+| Item | Reason for Deferral |
 |---|---|
-| Sandbox runtime cụ thể (Docker, gVisor, Firecracker, WASM) | Phụ thuộc vào deployment topology (doc 13) — mỗi mode dùng runtime khác nhau |
-| Pre-warmed pool implementation cho `read_only_repo` | Phụ thuộc vào implementation layer |
-| Secret rotation trong khi sandbox đang `executing` | Edge case — cần thêm thiết kế |
-| Egress policy cho AI tool calls (agent gọi external API) | Phụ thuộc vào tool registry — sẽ khóa cùng tool/execution layer |
-| Browser sandbox network inspection (MITM proxy cho audit) | Phức tạp về legal và technical — để lại cho deployment config |
-| Snapshot integrity verification khi mount `/input` | Phụ thuộc vào Artifact Lineage Model (doc 10) |
+| Specific sandbox runtime (Docker, gVisor, Firecracker, WASM) | Depends on deployment topology (doc 13) — each mode uses a different runtime |
+| Pre-warmed pool implementation for `read_only_repo` | Depends on the implementation layer |
+| Secret rotation while sandbox is `executing` | Edge case — requires further design |
+| Egress policy for AI tool calls (agent calling external APIs) | Depends on the tool registry — will be locked down with the tool/execution layer |
+| Browser sandbox network inspection (MITM proxy for audit) | Legally and technically complex — deferred to deployment config |
+| Snapshot integrity verification when mounting `/input` | Depends on the Artifact Lineage Model (doc 10) |
 
 ---
 
-## 12. Bước tiếp theo
+## 12. Next Steps
 
-Tài liệu tiếp theo là **09 — Permission Model**: khóa role/permission matrix, policy resolution order, per-agent permissions, per-tool permissions, và cơ chế delegate permission từ workspace xuống task/run/agent. Doc 09 sẽ điền vào các chỗ "Policy-gated" trong doc này.
+The next document is **09 — Permission Model**: locking down the role/permission matrix, policy resolution order, per-agent permissions, per-tool permissions, and the mechanism for delegating permissions from workspace down to task/run/agent. Doc 09 will fill in the "Policy-gated" items referenced in this document.

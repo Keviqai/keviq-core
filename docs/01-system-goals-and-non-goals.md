@@ -2,124 +2,124 @@
 
 ## System Goals
 
-### G1. Hệ phải là một môi trường làm việc, không phải hộp chat
+### G1. The system must be a work environment, not a chat box
 
-Mọi quyết định thiết kế phải ưu tiên mô hình workspace, task, run, artifact, terminal, file, event, agent lifecycle. Chat chỉ là một giao diện tương tác, không phải trung tâm kiến trúc.
+Every design decision must prioritize the workspace, task, run, artifact, terminal, file, event, and agent lifecycle models. Chat is merely an interaction interface, not the architectural center.
 
-### G2. Hệ phải hỗ trợ nhiều loại công việc số trên một trục thống nhất
+### G2. The system must support multiple types of digital work on a unified backbone
 
-Ít nhất phải thống nhất được hai nhóm chính:
+At minimum, it must unify two major groups:
 
-* công việc trực tuyến tri thức;
-* công việc coding.
+* online knowledge work;
+* coding work.
 
-Mọi loại công việc ban đầu phải đi qua cùng một xương sống: workspace → task → orchestrator → agent runtime → tools/execution → artifact → observability.
+All types of work must initially flow through the same backbone: workspace → task → orchestrator → agent runtime → tools/execution → artifact → observability.
 
-### G3. Hệ phải ưu tiên công việc kéo dài, nhiều bước, có trạng thái
+### G3. The system must prioritize long-running, multi-step, stateful work
 
-System phải xử lý tốt các tác vụ không thể hoàn thành trong một prompt ngắn, bao gồm:
+The system must handle tasks that cannot be completed in a single short prompt, including:
 
-* phân tích repo lớn;
-* quét lỗi và tạo báo cáo;
-* nghiên cứu chủ đề nhiều nguồn;
-* lên kế hoạch và tạo tài liệu nhiều phần;
-* tác vụ cần nhiều agent và nhiều tool calls.
+* analyzing large repos;
+* scanning for bugs and generating reports;
+* researching topics across multiple sources;
+* creating plans and multi-part documents;
+* tasks requiring multiple agents and many tool calls.
 
-### G4. Hệ phải có kiến trúc local/cloud/hybrid ngay từ nền móng
+### G4. The system must have local/cloud/hybrid architecture from the foundation
 
-Tài nguyên của Agent OS có thể đến từ:
+Agent OS resources may come from:
 
-* máy local của người dùng;
+* the user's local machine;
 * cloud compute;
-* dịch vụ online;
-* object storage từ cloud hoặc tại chỗ.
+* online services;
+* object storage from the cloud or on-premises.
 
-Kiến trúc phải chấp nhận điều này như một đặc tính cốt lõi, không phải tính năng phụ.
+The architecture must treat this as a core characteristic, not an add-on feature.
 
-### G5. Hệ phải observable và controllable
+### G5. The system must be observable and controllable
 
-Người dùng phải thấy được:
+Users must be able to see:
 
-* task nào đang chạy;
-* agent nào đang làm gì;
-* tool nào vừa được gọi;
-* file nào vừa được tạo hoặc thay đổi;
-* tiến độ và lỗi ở đâu;
-* chi phí model hoặc tài nguyên tính toán tiêu tốn bao nhiêu.
+* which tasks are running;
+* what each agent is doing;
+* which tool was just called;
+* which file was just created or modified;
+* where progress stands and where errors occurred;
+* how much model or compute resources have been consumed.
 
-Đồng thời người dùng phải có khả năng:
+At the same time, users must have the ability to:
 
-* dừng;
-* sửa chỉ dẫn;
-* duyệt/không duyệt;
-* can thiệp thủ công;
-* chạy lại.
+* stop;
+* modify instructions;
+* approve/reject;
+* manually intervene;
+* rerun.
 
-### G6. Hệ phải permissioned và auditable
+### G6. The system must be permissioned and auditable
 
-Không được giả định AI có toàn quyền. Hệ phải hỗ trợ:
+AI must not be assumed to have full access. The system must support:
 
-* phân quyền theo workspace;
-* phân quyền theo công cụ;
-* phân quyền theo agent;
-* cấp phát secrets theo policy;
-* ghi nhật ký hành động và lineage của artifact.
+* workspace-level permissions;
+* tool-level permissions;
+* agent-level permissions;
+* policy-driven secret provisioning;
+* action logging and artifact lineage tracking.
 
-### G7. Hệ phải tool-first và online-first
+### G7. The system must be tool-first and online-first
 
-Vì định hướng công việc của hệ chủ yếu là trực tuyến và coding, nên công cụ online, API, browser automation, file operations, terminal, repo access và data connectors phải là năng lực lõi.
+Since the system is oriented toward online and coding work, online tools, APIs, browser automation, file operations, terminal, repo access, and data connectors must be core capabilities.
 
-### G8. Hệ phải engine-agnostic và model-agnostic
+### G8. The system must be engine-agnostic and model-agnostic
 
-Agent OS không được khóa vào một model hay một engine duy nhất. Hệ phải đủ trừu tượng để thay:
+Agent OS must not be locked to a single model or engine. The system must be abstract enough to swap:
 
-* model provider;
-* agent engine;
-* execution backend;
-* connector protocol.
+* model providers;
+* agent engines;
+* execution backends;
+* connector protocols.
 
-### G9. Hệ phải artifact-centric
+### G9. The system must be artifact-centric
 
-Mọi kết quả làm việc có giá trị phải trở thành artifact có thể lưu, xem, truy vết, chia sẻ và tái sử dụng. Ví dụ:
+Every valuable work output must become an artifact that can be saved, viewed, traced, shared, and reused. Examples:
 
-* báo cáo;
-* patch;
-* file sinh ra;
-* log;
-* findings JSON;
-* summary;
-* repo snapshot.
+* reports;
+* patches;
+* generated files;
+* logs;
+* JSON findings;
+* summaries;
+* repo snapshots.
 
-### G10. Hệ phải giữ vững tính hệ điều hành ở cấp sản phẩm
+### G10. The system must maintain its operating system identity at the product level
 
-Trải nghiệm tổng phải là: mở workspace, xem task, quản lý agent, điều phối tài nguyên, theo dõi outputs. Không để sản phẩm trôi thành một trợ lý chat có nhiều panel phụ.
+The overall experience must be: open a workspace, view tasks, manage agents, orchestrate resources, monitor outputs. The product must not drift into becoming a chat assistant with auxiliary panels.
 
 ## Non-goals
 
-### N1. Không xây một chatbot đa năng rồi bọc shell bên ngoài
+### N1. Do not build a general-purpose chatbot with a shell wrapper
 
-Chat UI không được phép trở thành lõi logic của toàn hệ.
+The chat UI must not become the core logic of the entire system.
 
-### N2. Không tối ưu cho đồ họa sáng tạo chuyên sâu ở giai đoạn đầu
+### N2. Do not optimize for intensive creative graphics in the initial phase
 
-Các use case như thiết kế đồ họa nặng, dựng video chuyên sâu, sáng tạo media lớn không được chi phối kiến trúc giai đoạn đầu.
+Use cases such as heavy graphic design, intensive video production, and large-scale media creation must not drive initial architecture decisions.
 
-### N3. Không gắn chặt hệ vào một nhà cung cấp AI hay cloud duy nhất
+### N3. Do not lock the system to a single AI or cloud provider
 
-System không được phụ thuộc sống còn vào một provider duy nhất cho model, storage, sandbox hay execution.
+The system must not have a critical dependency on any single provider for models, storage, sandboxing, or execution.
 
-### N4. Không đồng nhất orchestrator và agent engine
+### N4. Do not conflate the orchestrator and the agent engine
 
-Điều phối công việc và logic suy luận của agent là hai lớp riêng, không được trộn trách nhiệm.
+Work orchestration and agent reasoning logic are two separate layers; their responsibilities must not be mixed.
 
-### N5. Không để frontend trực tiếp điều khiển execution nhạy cảm
+### N5. Do not let the frontend directly control sensitive execution
 
-Frontend chỉ là shell điều khiển. Quyền thực thi phải đi qua backend services, policy và audit.
+The frontend is only a control shell. Execution authority must go through backend services, policy, and audit.
 
-### N6. Không kỳ vọng AI tự động đúng tuyệt đối
+### N6. Do not assume AI will be perfectly correct
 
-Hệ phải được thiết kế cho sự can thiệp của con người, sự thất bại, sự không chắc chắn và sự cần kiểm chứng.
+The system must be designed for human intervention, failure, uncertainty, and the need for verification.
 
-### N7. Không overfit vào một use case đơn lẻ
+### N7. Do not overfit to a single use case
 
-Repo audit là một use case rất mạnh, nhưng Agent OS không được bị khóa thành "nền tảng audit code". Nó phải giữ được hình dạng platform cho nhiều công việc số.
+Repo auditing is a very strong use case, but Agent OS must not become locked into being a "code audit platform." It must retain its platform shape for many types of digital work.

@@ -1,78 +1,78 @@
 # 00. Product Vision
 
-## Tên tạm thời
+## Working Title
 
 Agent OS
 
-## Tuyên ngôn sản phẩm
+## Product Manifesto
 
-Agent OS là một **hệ điều hành công việc mới** dành cho những người muốn ứng dụng AI vào công việc hằng ngày của họ. Hệ này không được thiết kế như một chatbot, một bộ công cụ rời rạc, hay một dashboard tự động hóa đơn thuần. Nó được thiết kế như một **môi trường làm việc hoàn chỉnh**, nơi con người, AI agent, dữ liệu, công cụ trực tuyến và tài nguyên tính toán cùng tồn tại trong một không gian điều hành thống nhất.
+Agent OS is a **new work operating system** designed for people who want to apply AI to their daily work. It is not designed as a chatbot, a collection of disconnected tools, or a simple automation dashboard. It is designed as a **complete work environment** where humans, AI agents, data, online tools, and compute resources coexist in a unified operational space.
 
-Agent OS phải cho phép nhiều nhóm người dùng khác nhau cùng khai thác AI theo cách có cấu trúc:
+Agent OS must enable diverse user groups to leverage AI in a structured manner:
 
-* người làm kỹ thuật dùng nó để đọc code, phân tích repo, viết code, chạy test, sửa lỗi, sinh báo cáo;
-* người làm marketing dùng nó để nghiên cứu, tổng hợp, lập kế hoạch, theo dõi chiến dịch, tạo tài liệu làm việc;
-* nhà quản lý dùng nó để điều phối công việc, theo dõi tiến độ, tổng hợp thông tin, tạo báo cáo, giám sát tác vụ do AI thực hiện.
+* engineers use it to read code, analyze repos, write code, run tests, fix bugs, and generate reports;
+* marketers use it to research, synthesize, plan, track campaigns, and create working documents;
+* managers use it to coordinate work, track progress, consolidate information, create reports, and oversee AI-executed tasks.
 
-## Bản chất hệ thống
+## System Nature
 
-Agent OS là một hệ điều hành mới theo nghĩa chức năng, không theo nghĩa kernel truyền thống. Nó phải đóng vai trò:
+Agent OS is an operating system in the functional sense, not in the traditional kernel sense. It must serve as:
 
-* là **vỏ làm việc** cho người dùng trên nền web;
-* là **bộ điều phối** cho tác vụ và nhiều agent;
-* là **môi trường thực thi** cho các công việc trực tuyến và coding;
-* là **lớp quản trị tài nguyên, quyền hạn, artifact, và trạng thái**;
-* là **cầu nối giữa người dùng, AI model, agent engine, công cụ trực tuyến và tài nguyên local/cloud**.
+* a **work shell** for users on the web;
+* an **orchestrator** for tasks and multiple agents;
+* an **execution environment** for online and coding work;
+* a **management layer for resources, permissions, artifacts, and state**;
+* a **bridge between users, AI models, agent engines, online tools, and local/cloud resources**.
 
-## Định vị khác biệt
+## Differentiating Position
 
-Agent OS không cạnh tranh bằng một model riêng. Giá trị cốt lõi nằm ở:
+Agent OS does not compete by having a proprietary model. Its core value lies in:
 
-* khả năng tổ chức công việc bằng AI ở cấp hệ điều hành;
-* khả năng chạy và kiểm soát nhiều agent một cách có cấu trúc;
-* khả năng kết nối online tools và coding tools trong cùng một môi trường;
-* khả năng giữ ngữ cảnh công việc theo workspace thay vì theo từng cuộc chat rời rạc;
-* khả năng quan sát, can thiệp và kiểm soát hoạt động của AI trong thời gian thực.
+* the ability to organize work with AI at the operating system level;
+* the ability to run and manage multiple agents in a structured manner;
+* the ability to connect online tools and coding tools within a single environment;
+* the ability to maintain work context per workspace instead of per disconnected chat session;
+* the ability to observe, intervene, and control AI activity in real time.
 
-## Đối tượng người dùng ưu tiên
+## Target Users
 
-Phiên bản đầu tiên hướng tới:
+The first version targets:
 
-* cá nhân làm việc cường độ cao với máy tính;
-* nhóm kỹ thuật nhỏ đến trung bình;
-* người làm việc tri thức cần dùng AI cho nghiên cứu, tổng hợp, phân tích, lập kế hoạch, tạo tài liệu và coding.
+* individuals who work intensively with computers;
+* small to medium-sized engineering teams;
+* knowledge workers who need AI for research, synthesis, analysis, planning, documentation, and coding.
 
-Hệ không khóa chặt vào một vai trò duy nhất. Mục tiêu là tạo một nền móng đủ mạnh để mở rộng sang nhiều loại công việc khác nhau, miễn là các công việc đó chủ yếu diễn ra qua internet, qua tài liệu số, qua phần mềm, qua dữ liệu và qua môi trường lập trình.
+The system is not locked to a single role. The goal is to build a foundation strong enough to extend to many types of work, as long as that work primarily takes place over the internet, through digital documents, through software, through data, and through programming environments.
 
-## Trục use case ưu tiên
+## Priority Use Case Axes
 
-Agent OS phải làm rất tốt các nhóm công việc sau:
+Agent OS must excel at the following categories of work:
 
-1. **online knowledge work**: nghiên cứu, tổng hợp, báo cáo, phân tích, lập kế hoạch, theo dõi công việc;
-2. **coding work**: đọc repo, audit code, sửa lỗi, refactor, tạo patch, chạy test, sinh artifact kỹ thuật;
-3. **multi-step digital workflows**: tác vụ kéo dài nhiều bước, cần nhiều agent, cần nhiều công cụ online, cần quản lý file và báo cáo.
+1. **online knowledge work**: research, synthesis, reporting, analysis, planning, work tracking;
+2. **coding work**: reading repos, auditing code, fixing bugs, refactoring, creating patches, running tests, generating technical artifacts;
+3. **multi-step digital workflows**: long-running tasks requiring multiple steps, multiple agents, multiple online tools, and file and report management.
 
-## Những gì chưa ưu tiên ở giai đoạn đầu
+## Out of Scope for the Initial Phase
 
-Giai đoạn đầu **không** lấy các loại công việc sau làm trọng tâm:
+The initial phase does **not** prioritize the following types of work:
 
-* thiết kế đồ họa chuyên sâu;
-* dựng phim, 3D, CAD;
-* xử lý media nặng theo thời gian thực;
-* điều khiển phần cứng phức tạp;
-* các workflow đòi hỏi UI đồ họa chuyên biệt như Figma-class editor hoặc Adobe-class editor.
+* intensive graphic design;
+* video production, 3D, CAD;
+* heavy real-time media processing;
+* complex hardware control;
+* workflows requiring specialized graphical UIs such as Figma-class editors or Adobe-class editors.
 
-Điều này không có nghĩa hệ không bao giờ hỗ trợ, mà nghĩa là kiến trúc giai đoạn đầu không được bẻ cong vì các use case đó.
+This does not mean the system will never support these; it means the initial architecture must not be bent to accommodate these use cases.
 
-## Tầm nhìn dài hạn
+## Long-term Vision
 
-Về dài hạn, Agent OS phải giống một "Linux của công việc AI-native":
+In the long term, Agent OS should resemble a "Linux for AI-native work":
 
-* có shell giao diện riêng;
-* có process/task model riêng;
-* có workspace/file/artifact model riêng;
-* có permission/security model riêng;
-* có khả năng chạy local, cloud, hoặc hybrid;
-* có khả năng cắm nhiều model, nhiều engine, nhiều connector, nhiều execution backend.
+* with its own interface shell;
+* with its own process/task model;
+* with its own workspace/file/artifact model;
+* with its own permission/security model;
+* with the ability to run locally, in the cloud, or in hybrid mode;
+* with the ability to plug in multiple models, engines, connectors, and execution backends.
 
-Hệ phải tồn tại như một **platform**, không chỉ là một sản phẩm một tính năng.
+The system must exist as a **platform**, not merely as a single-feature product.

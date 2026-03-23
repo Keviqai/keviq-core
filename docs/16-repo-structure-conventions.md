@@ -1,8 +1,8 @@
 # 16 — Repo Structure Conventions
 
-**Trạng thái:** Draft v1.0  
-**Phụ thuộc:** 03 Bounded Contexts, 13 Deployment Topology, 14 Frontend Application Map, 15 Backend Service Map, Gate Review 00–12  
-**Mục tiêu:** Khóa monorepo layout, ownership per package/service, naming conventions, import boundary rules, architecture tests/lint rules map từ PP1–PP10, và PR checklist để reviewer bắt vi phạm kiến trúc ngay từ ngày đầu.
+**Status:** Draft v1.0
+**Dependencies:** 03 Bounded Contexts, 13 Deployment Topology, 14 Frontend Application Map, 15 Backend Service Map, Gate Review 00–12
+**Objective:** Lock the monorepo layout, ownership per package/service, naming conventions, import boundary rules, architecture tests/lint rules mapping from PP1–PP10, and PR checklist so that reviewers catch architecture violations from day one.
 
 ---
 
@@ -10,18 +10,18 @@
 
 ### 1.1 Monorepo
 
-Toàn bộ Agent OS sống trong một monorepo. Lý do:
+The entire Agent OS lives in a single monorepo. Rationale:
 
-- Import boundary enforcement dễ hơn khi cross-package — tooling có thể check ngay trong CI.
-- Schema, type, event contract được share mà không qua npm publish cycle.
-- Architecture tests có thể query toàn bộ codebase.
-- Recovery duty, startup ordering, và pressure points dễ verify hơn.
+- Import boundary enforcement is easier with cross-package access — tooling can check directly in CI.
+- Schema, type, and event contract sharing works without npm publish cycles.
+- Architecture tests can query the entire codebase.
+- Recovery duty, startup ordering, and pressure points are easier to verify.
 
 ### 1.2 Monorepo tooling
 
 - **Package manager:** pnpm workspaces.
 - **Build orchestration:** Turborepo (incremental build, cache).
-- **Architecture test:** `dependency-cruiser` cho TypeScript, `pytest-importlinter` hoặc custom AST checker cho Python.
+- **Architecture test:** `dependency-cruiser` for TypeScript, `pytest-importlinter` or custom AST checker for Python.
 
 ---
 
@@ -30,7 +30,7 @@ Toàn bộ Agent OS sống trong một monorepo. Lý do:
 ```
 agent-os/
 ├── apps/                    ← Deployable applications
-│   ├── web/                 ← Frontend shell (Next.js hoặc Vite)
+│   ├── web/                 ← Frontend shell (Next.js or Vite)
 │   ├── api-gateway/         ← SVC-05
 │   ├── sse-gateway/         ← SVC-06
 │   ├── orchestrator/        ← SVC-01
@@ -48,7 +48,7 @@ agent-os/
 │   └── telemetry-service/   ← SVC-15
 │
 ├── packages/                ← Shared libraries, NOT business logic
-│   ├── domain-types/        ← TypeScript types mirror từ API schema
+│   ├── domain-types/        ← TypeScript types mirrored from API schema
 │   ├── event-schema/        ← Event envelope types + event_type constants
 │   ├── api-client/          ← Generated API client (OpenAPI → TypeScript)
 │   ├── ui-core/             ← Design system, base components
@@ -61,12 +61,12 @@ agent-os/
 │   ├── db-client/           ← DB connection helpers (backend only)
 │   ├── outbox/              ← Outbox write + relay helpers (backend only)
 │   ├── logger/              ← Structured logging (backend only)
-│   └── test-utils/          ← Shared test fixtures và helpers
+│   └── test-utils/          ← Shared test fixtures and helpers
 │
 ├── infra/                   ← Infrastructure as code
 │   ├── docker/              ← Docker Compose configs per topology mode
 │   ├── k8s/                 ← Kubernetes manifests (cloud mode)
-│   ├── terraform/           ← Cloud infra (nếu cần)
+│   ├── terraform/           ← Cloud infra (if needed)
 │   └── scripts/             ← Startup, migration, seed scripts
 │
 ├── docs/                    ← Architecture docs 00–17
@@ -92,7 +92,7 @@ agent-os/
 
 ## 3. Service Internal Layout
 
-Mỗi app trong `apps/` theo layout chuẩn:
+Each app in `apps/` follows a standard layout:
 
 ### 3.1 Backend service (Python/FastAPI)
 
@@ -121,29 +121,29 @@ apps/orchestrator/
 ├── tests/
 │   ├── unit/
 │   ├── integration/
-│   └── arch/                ← Architecture tests cho service này
+│   └── arch/                ← Architecture tests for this service
 ├── alembic/                 ← DB migrations (schema: orchestrator_core)
 ├── Dockerfile
 └── pyproject.toml
 ```
 
-**Quy tắc cứng:**
-- `domain/` không được import từ `infrastructure/` hay `api/`.
-- `api/` không được import trực tiếp từ `infrastructure/`.
-- State transition chỉ được gọi từ `domain/` — không từ `api/` hay `infrastructure/`.
+**Hard rules:**
+- `domain/` must not import from `infrastructure/` or `api/`.
+- `api/` must not import directly from `infrastructure/`.
+- State transitions may only be invoked from `domain/` — not from `api/` or `infrastructure/`.
 
 ### 3.2 Frontend app
 
 ```
 apps/web/
 ├── src/
-│   ├── app/                 ← Next.js app router hoặc React Router
+│   ├── app/                 ← Next.js app router or React Router
 │   │   ├── workspaces/
 │   │   ├── tasks/
 │   │   ├── runs/
 │   │   ├── artifacts/
 │   │   └── approvals/
-│   ├── modules/             ← Feature modules (mirror doc 14 module tree)
+│   ├── modules/             ← Feature modules (mirrors doc 14 module tree)
 │   │   ├── shell/
 │   │   ├── task-monitor/
 │   │   ├── artifact-explorer/
@@ -151,12 +151,12 @@ apps/web/
 │   │   ├── approval-center/
 │   │   ├── investigation/
 │   │   └── terminal-app/
-│   └── lib/                 ← App-level wiring (không phải packages/)
+│   └── lib/                 ← App-level wiring (not packages/)
 │
 ├── tests/
 │   ├── unit/
 │   ├── e2e/
-│   └── arch/                ← Import boundary tests cho frontend
+│   └── arch/                ← Import boundary tests for frontend
 └── ...
 ```
 
@@ -164,9 +164,9 @@ apps/web/
 
 ## 4. Naming Conventions
 
-### 4.1 Tổng hợp conventions đã khóa ở docs trước
+### 4.1 Summary of conventions locked in previous docs
 
-| Loại | Convention | Ví dụ |
+| Type | Convention | Example |
 |---|---|---|
 | Docs | `NN-topic-name.md` | `04-core-domain-model.md` |
 | Service (app folder) | `kebab-case` | `orchestrator`, `artifact-service` |
@@ -179,138 +179,138 @@ apps/web/
 | Event type | `aggregate.past_tense_verb` | `task.completed`, `artifact.tainted` |
 | API path | `/v1/resource/:id/sub-resource` | `/v1/tasks/:taskId/runs` |
 | Entity ID | `uuid` (bare) | `"3f2e1a..."` |
-| Correlation ID | `uuid` | dùng chung với `trace_id` (DNB7) |
+| Correlation ID | `uuid` | shared with `trace_id` (DNB7) |
 | Environment variable | `SCREAMING_SNAKE_CASE` | `ORCHESTRATOR_DB_URL` |
 | Docker service | `kebab-case` | `orchestrator`, `artifact-service` |
 | K8s resource | `kebab-case` | `orchestrator-deployment` |
 
-### 4.2 Naming anti-patterns — bị cấm
+### 4.2 Naming anti-patterns — prohibited
 
-| Anti-pattern | Tại sao cấm |
+| Anti-pattern | Why prohibited |
 |---|---|
-| `agentPanel`, `aiChat`, `/debug-view` trong routes | Vi phạm domain language (doc 14 FP9) |
+| `agentPanel`, `aiChat`, `/debug-view` in routes | Violates domain language (doc 14 FP9) |
 | `SharedService`, `UtilsService`, `CommonHelper` | Signals blurry ownership |
-| `*Manager` cho domain service | Naming che giấu trách nhiệm thực |
-| `status` không có prefix aggregate | `status` vs `task_status`, `run_status` — phải rõ aggregate |
-| `data`, `result`, `response` làm tên field trong event payload | Payload field phải semantic |
-| Dùng `latest` làm model version value | DNB12 — phải là version cụ thể |
+| `*Manager` for domain service | Naming obscures actual responsibility |
+| `status` without aggregate prefix | `status` vs `task_status`, `run_status` — aggregate must be clear |
+| `data`, `result`, `response` as field names in event payload | Payload fields must be semantic |
+| Using `latest` as model version value | DNB12 — must be a specific version |
 
 ---
 
 ## 5. Import Boundary Rules
 
-Đây là phần được enforce bằng tooling — không phải quy ước miệng.
+This section is enforced by tooling — not by verbal convention.
 
 ### 5.1 Backend import boundaries
 
-**Quy tắc trong một service:**
+**Rules within a service:**
 
 ```
-domain/     ← không được import từ application/, infrastructure/, api/
-application/ ← được import domain/; không được import infrastructure/ trực tiếp
-infrastructure/ ← được import domain/; không được import application/
-api/         ← được import application/; không được import infrastructure/ trực tiếp
+domain/     ← must not import from application/, infrastructure/, api/
+application/ ← may import domain/; must not import infrastructure/ directly
+infrastructure/ ← may import domain/; must not import application/
+api/         ← may import application/; must not import infrastructure/ directly
 ```
 
-**Quy tắc cross-service:**
+**Cross-service rules:**
 
 ```
 FORBIDDEN: apps/orchestrator → apps/artifact-service (direct import)
 ALLOWED:   apps/orchestrator → packages/event-schema (shared types)
 ALLOWED:   apps/orchestrator → packages/domain-types (shared types)
-FORBIDDEN: apps/api-gateway → apps/orchestrator (phải qua HTTP/event)
+FORBIDDEN: apps/api-gateway → apps/orchestrator (must go through HTTP/event)
 ```
 
-Mọi cross-service communication phải qua API call hoặc event — không import Python module của service khác.
+All cross-service communication must go through API calls or events — no importing Python modules from another service.
 
 ### 5.2 Frontend import boundaries
 
-**Quy tắc packages:**
+**Package rules:**
 
 ```
-packages/server-state   ← chỉ được import từ apps/web và packages/permissions
-packages/live-state     ← chỉ được import từ apps/web
-packages/ui-state       ← chỉ được import từ apps/web
-packages/ui-core        ← được import bởi bất kỳ frontend package/app nào
-packages/domain-types   ← được import bởi bất kỳ package/app nào
-packages/event-schema   ← được import bởi bất kỳ package/app nào
+packages/server-state   ← may only be imported from apps/web and packages/permissions
+packages/live-state     ← may only be imported from apps/web
+packages/ui-state       ← may only be imported from apps/web
+packages/ui-core        ← may be imported by any frontend package/app
+packages/domain-types   ← may be imported by any package/app
+packages/event-schema   ← may be imported by any package/app
 ```
 
-**Quy tắc trong frontend app:**
+**Rules within the frontend app:**
 
 ```
-modules/task-monitor    ← không được import từ modules/artifact-explorer
-modules/lineage-viewer  ← không được import từ modules/task-monitor
+modules/task-monitor    ← must not import from modules/artifact-explorer
+modules/lineage-viewer  ← must not import from modules/task-monitor
 ```
 
-Modules giao tiếp với nhau qua routing và shared packages — không import trực tiếp.
+Modules communicate with each other through routing and shared packages — no direct imports.
 
 ```
 FORBIDDEN: modules/task-monitor/TaskDetail.tsx imports modules/artifact-explorer/ArtifactCard.tsx
-ALLOWED:   packages/ui-core/ArtifactBadge.tsx được import bởi cả hai
+ALLOWED:   packages/ui-core/ArtifactBadge.tsx may be imported by both
 ```
 
-### 5.3 Không được cross backend/frontend boundary trong packages
+### 5.3 No crossing the backend/frontend boundary within packages
 
 ```
 FORBIDDEN: packages/server-state imports packages/outbox
 FORBIDDEN: packages/ui-core imports packages/db-client
 ```
 
-`server-state`, `live-state`, `ui-state`, `ui-core`, `charts`, `permissions` là frontend-only packages.  
-`db-client`, `outbox`, `logger` là backend-only packages.  
-`domain-types`, `event-schema`, `api-client`, `test-utils` là shared.
+`server-state`, `live-state`, `ui-state`, `ui-core`, `charts`, `permissions` are frontend-only packages.
+`db-client`, `outbox`, `logger` are backend-only packages.
+`domain-types`, `event-schema`, `api-client`, `test-utils` are shared.
 
 ---
 
 ## 6. Architecture Tests
 
-Architecture tests là code — chạy trong CI, fail build nếu vi phạm. Không phải doc để developer tự đọc và tự nhớ.
+Architecture tests are code — they run in CI and fail the build on violation. They are not documentation for developers to read and remember.
 
 ### 6.1 Pressure Point → Architecture Test mapping
 
 | Pressure Point | Test | Tool | Fail condition |
 |---|---|---|---|
-| **PP1** — State transition authority ở Orchestrator | `test_no_status_write_outside_orchestrator` | `pytest-importlinter` + AST scan | Bất kỳ file nào ngoài `apps/orchestrator/src/domain/` có `UPDATE ... SET.*_status` hoặc `.task_status =` |
-| **PP2** — Orchestrator outbox flush trước accept | `test_orchestrator_startup_order` | Integration test | Orchestrator readiness probe pass trước khi outbox relay healthy |
-| **PP3** — Agent Runtime reconcile sau crash | `test_agent_runtime_no_accept_before_reconcile` | Integration test | `StartInvocation` thành công trước khi reconcile phase hoàn tất |
-| **PP4** — Sandbox 1-N per AgentInvocation | `test_sandbox_attempt_index_required` | Schema test | `sandbox_attempts` table thiếu `attempt_index` column |
-| **PP5** — Taint write trước event emit | `test_taint_db_before_outbox` | Unit test | `artifact.tainted = true` write xảy ra sau outbox insert trong cùng function |
-| **PP6** — `run.timed_out` → `run.cancelled` same transaction | `test_timed_out_emits_cancelled` | Unit test | `run.timed_out` outbox entry không có `run.cancelled` entry trong cùng transaction |
-| **PP7** — Tool idempotency contract | `test_tool_idempotent_flag_required` | Schema/registry test | Tool registration thiếu `idempotent` field |
-| **PP8** — Approval timeout không chỉ scheduler | `test_approval_timeout_defensive_check` | Unit test | Process event không trigger approval timeout check |
-| **PP9** — Model version không là alias | `test_model_version_not_alias` | Unit test | `model_gateway` trả `"latest"` hoặc `"claude-3"` (không có date suffix) |
-| **PP10** — Artifact table isolation | `test_artifact_schema_credentials` | Infra test | `orchestrator` DB user có WRITE permission trên `artifact_core` schema |
+| **PP1** — State transition authority at Orchestrator | `test_no_status_write_outside_orchestrator` | `pytest-importlinter` + AST scan | Any file outside `apps/orchestrator/src/domain/` contains `UPDATE ... SET.*_status` or `.task_status =` |
+| **PP2** — Orchestrator outbox flush before accept | `test_orchestrator_startup_order` | Integration test | Orchestrator readiness probe passes before outbox relay is healthy |
+| **PP3** — Agent Runtime reconcile after crash | `test_agent_runtime_no_accept_before_reconcile` | Integration test | `StartInvocation` succeeds before reconcile phase completes |
+| **PP4** — Sandbox 1-N per AgentInvocation | `test_sandbox_attempt_index_required` | Schema test | `sandbox_attempts` table missing `attempt_index` column |
+| **PP5** — Taint write before event emit | `test_taint_db_before_outbox` | Unit test | `artifact.tainted = true` write occurs after outbox insert in the same function |
+| **PP6** — `run.timed_out` → `run.cancelled` same transaction | `test_timed_out_emits_cancelled` | Unit test | `run.timed_out` outbox entry has no `run.cancelled` entry in the same transaction |
+| **PP7** — Tool idempotency contract | `test_tool_idempotent_flag_required` | Schema/registry test | Tool registration missing `idempotent` field |
+| **PP8** — Approval timeout not scheduler-only | `test_approval_timeout_defensive_check` | Unit test | Processing an event does not trigger approval timeout check |
+| **PP9** — Model version must not be an alias | `test_model_version_not_alias` | Unit test | `model_gateway` returns `"latest"` or `"claude-3"` (without date suffix) |
+| **PP10** — Artifact table isolation | `test_artifact_schema_credentials` | Infra test | `orchestrator` DB user has WRITE permission on `artifact_core` schema |
 
 ### 6.2 Import boundary tests (dependency-cruiser)
 
-File `.dependency-cruiser.js` enforce:
+File `.dependency-cruiser.js` enforces:
 
 ```javascript
 module.exports = {
   forbidden: [
-    // PP1: không service nào ngoài orchestrator write task_status
+    // PP1: no service other than orchestrator writes task_status
     {
       name: "no-cross-service-domain-import",
       from: { pathNot: "^apps/orchestrator" },
       to: { path: "^apps/orchestrator/src/domain" },
       severity: "error"
     },
-    // Frontend: server-state không import db-client
+    // Frontend: server-state must not import db-client
     {
       name: "no-frontend-pkg-import-backend-pkg",
       from: { path: "^packages/(server-state|live-state|ui-state|ui-core|charts)" },
       to: { path: "^packages/(db-client|outbox|logger)" },
       severity: "error"
     },
-    // Frontend: modules không cross-import nhau
+    // Frontend: modules must not cross-import each other
     {
       name: "no-module-cross-import",
       from: { path: "^apps/web/src/modules/([^/]+)" },
       to: { path: "^apps/web/src/modules/(?!\\1)" },
       severity: "error"
     },
-    // DNB7: không tạo traceId khác correlationId
+    // DNB7: do not create traceId different from correlationId
     {
       name: "no-new-trace-id",
       from: { path: "^apps" },
@@ -337,7 +337,7 @@ layers =
     orchestrator.application
     orchestrator.domain
     orchestrator.infrastructure
-# domain không được import application hay infrastructure
+# domain must not import application or infrastructure
 
 [importlinter:contract:no-cross-service]
 name = Services must not directly import each other
@@ -354,7 +354,7 @@ forbidden_modules =
 
 ```python
 def test_orchestrator_cannot_write_artifact_schema():
-    """Orchestrator DB user không được có WRITE permission trên artifact_core"""
+    """Orchestrator DB user must not have WRITE permission on artifact_core"""
     with orchestrator_db_connection() as conn:
         result = conn.execute("""
             SELECT has_schema_privilege('orchestrator_user', 'artifact_core', 'USAGE')
@@ -366,50 +366,50 @@ def test_orchestrator_cannot_write_artifact_schema():
 
 ## 7. PR Checklist
 
-File `.github/PULL_REQUEST_TEMPLATE.md` — bắt buộc check trước khi merge:
+File `.github/PULL_REQUEST_TEMPLATE.md` — mandatory check before merge:
 
 ```markdown
 ## PR Checklist — Architecture Compliance
 
 ### Domain & State Machine
-- [ ] Không có file nào ngoài `apps/orchestrator/src/domain/` mutate `task_status`, `run_status`, `step_status`
-- [ ] Nếu PR thêm state transition: bám đúng doc 05 state machine, có unit test cho transition
-- [ ] `run.timed_out` nếu có: emit `run.cancelled` trong cùng outbox transaction (PP6)
+- [ ] No file outside `apps/orchestrator/src/domain/` mutates `task_status`, `run_status`, `step_status`
+- [ ] If PR adds state transition: follows doc 05 state machine, has unit test for transition
+- [ ] `run.timed_out` if present: emits `run.cancelled` in same outbox transaction (PP6)
 
 ### Events & Outbox
-- [ ] Mọi domain mutation cần event: viết DB state + outbox trong cùng transaction
-- [ ] Event type name: `aggregate.past_tense_verb` (không phải present tense)
-- [ ] Không có event `event_id` duplicate khả năng — dùng UUID v7 hoặc v4
+- [ ] Every domain mutation requiring an event: writes DB state + outbox in same transaction
+- [ ] Event type name: `aggregate.past_tense_verb` (not present tense)
+- [ ] No duplicate `event_id` possibility — uses UUID v7 or v4
 
 ### Artifacts & Lineage
-- [ ] Artifact creation: chỉ qua `artifact-service` (DNB6) — không direct write
-- [ ] Taint: DB write trước outbox write trong cùng transaction (PP5, DNB11)
-- [ ] Model version không phải alias khi artifact registration (PP9, DNB12)
+- [ ] Artifact creation: only through `artifact-service` (DNB6) — no direct write
+- [ ] Taint: DB write before outbox write in same transaction (PP5, DNB11)
+- [ ] Model version is not an alias during artifact registration (PP9, DNB12)
 
 ### Permissions & Security
-- [ ] Không có `if (user.role === ...)` trong frontend component (FP2)
-- [ ] Permission check dùng `_capabilities` từ backend response
-- [ ] Không có direct WebSocket tới sandbox từ frontend (FP4)
+- [ ] No `if (user.role === ...)` in frontend components (FP2)
+- [ ] Permission check uses `_capabilities` from backend response
+- [ ] No direct WebSocket to sandbox from frontend (FP4)
 
 ### Frontend State
-- [ ] Không có local state machine cho Task/Run/Step (FP1)
-- [ ] SSE handler dùng `invalidateQueries()` — không set cache trực tiếp (FP5)
-- [ ] Không có lineage compute ở client (FP3)
-- [ ] Không có domain entity trong localStorage (FP7)
+- [ ] No local state machine for Task/Run/Step (FP1)
+- [ ] SSE handler uses `invalidateQueries()` — does not set cache directly (FP5)
+- [ ] No lineage computation on client (FP3)
+- [ ] No domain entity in localStorage (FP7)
 
 ### Import Boundaries
-- [ ] Không có cross-service Python import (chỉ qua HTTP/event)
-- [ ] Không có frontend module cross-import trực tiếp (qua packages/ chỉ)
-- [ ] `packages/server-state|live-state|ui-state` không import `packages/db-client|outbox`
+- [ ] No cross-service Python import (only through HTTP/event)
+- [ ] No frontend module cross-import directly (through packages/ only)
+- [ ] `packages/server-state|live-state|ui-state` does not import `packages/db-client|outbox`
 
 ### Recovery & Startup
-- [ ] Nếu PR thay đổi startup behavior: đúng startup order doc 13 mục 13.22
-- [ ] Nếu PR thêm service: có recovery duty documented và tested
+- [ ] If PR changes startup behavior: follows startup order doc 13 section 13.22
+- [ ] If PR adds service: recovery duty is documented and tested
 
 ### Naming
-- [ ] Không có route pattern `/agent-panel`, `/debug-view` — phải dùng domain object names
-- [ ] DB field cho status: có prefix aggregate (`task_status` không phải `status`)
-- [ ] Event payload field: semantic names, không phải `data`, `result`, `response`
+- [ ] No route pattern `/agent-panel`, `/debug-view` — must use domain object names
+- [ ] DB field for status: has aggregate prefix (`task_status` not `status`)
+- [ ] Event payload fields: semantic names, not `data`, `result`, `response`
 ```
 
 ---
@@ -445,7 +445,7 @@ jobs:
   infra-test:
     - test_artifact_schema_credentials           (PP10)
     - test_no_superuser_in_service_credentials
-    (chạy trong Docker Compose test env)
+    (runs in Docker Compose test env)
 
   build:
     - only runs if all above pass
@@ -453,9 +453,9 @@ jobs:
 
 ---
 
-## 9. Migration và Schema Ownership
+## 9. Migrations and Schema Ownership
 
-### 9.1 Mỗi service tự quản lý migration của schema mình
+### 9.1 Each service manages its own schema migrations
 
 ```
 apps/orchestrator/alembic/    ← orchestrator_core migrations
@@ -464,9 +464,9 @@ apps/auth-service/alembic/    ← identity_core migrations
 ...
 ```
 
-Không có global migration runner. Mỗi service chạy `alembic upgrade head` cho schema của mình trong startup sequence.
+There is no global migration runner. Each service runs `alembic upgrade head` for its own schema during the startup sequence.
 
-### 9.2 Cross-schema reference bị cấm ở DB level
+### 9.2 Cross-schema references are prohibited at the DB level
 
 ```sql
 -- FORBIDDEN: foreign key cross-schema
@@ -474,15 +474,15 @@ ALTER TABLE orchestrator_core.runs
   ADD CONSTRAINT fk_artifact
   FOREIGN KEY (artifact_id) REFERENCES artifact_core.artifacts(id);
 
--- ALLOWED: reference bằng UUID value, không foreign key constraint
--- Application-level join qua API call hoặc event
+-- ALLOWED: reference by UUID value, no foreign key constraint
+-- Application-level join via API call or event
 ```
 
-Lý do: cross-schema FK tạo implicit ownership coupling — vi phạm service isolation.
+Rationale: cross-schema FKs create implicit ownership coupling — violating service isolation.
 
 ### 9.3 Schema versioning
 
-Mỗi schema phải có `schema_version` table:
+Each schema must have a `schema_version` table:
 
 ```sql
 CREATE TABLE orchestrator_core.schema_version (
@@ -491,7 +491,7 @@ CREATE TABLE orchestrator_core.schema_version (
 );
 ```
 
-Service readiness probe check schema version trước khi accept traffic.
+The service readiness probe checks schema version before accepting traffic.
 
 ---
 
@@ -499,21 +499,21 @@ Service readiness probe check schema version trước khi accept traffic.
 
 ### 10.1 Per-service env vars
 
-Mỗi service chỉ nhận env vars thuộc về mình:
+Each service only receives env vars that belong to it:
 
 ```
 # orchestrator
-ORCHESTRATOR_DB_URL=          ← connect tới orchestrator_core schema
+ORCHESTRATOR_DB_URL=          ← connects to orchestrator_core schema
 ORCHESTRATOR_EVENT_BUS_URL=
 ORCHESTRATOR_POLICY_SERVICE_URL=
 ORCHESTRATOR_ARTIFACT_SERVICE_URL=
-# Không có: ARTIFACT_DB_URL, MODEL_API_KEY, SECRET_VAULT_URL
+# Does not have: ARTIFACT_DB_URL, MODEL_API_KEY, SECRET_VAULT_URL
 
 # artifact-service
-ARTIFACT_DB_URL=              ← connect tới artifact_core schema
+ARTIFACT_DB_URL=              ← connects to artifact_core schema
 ARTIFACT_STORAGE_BUCKET=
-ARTIFACT_STORAGE_CREDENTIALS= ← riêng biệt
-# Không có: ORCHESTRATOR_DB_URL
+ARTIFACT_STORAGE_CREDENTIALS= ← separate
+# Does not have: ORCHESTRATOR_DB_URL
 ```
 
 ### 10.2 Secret naming convention
@@ -526,23 +526,23 @@ MODEL_GATEWAY_ANTHROPIC_KEY
 AUTH_JWT_SIGNING_SECRET
 ```
 
-Provider API key (`*_API_KEY`, `*_ACCESS_KEY`) chỉ được present trong service sở hữu — không leak sang service khác.
+Provider API keys (`*_API_KEY`, `*_ACCESS_KEY`) must only be present in the owning service — no leaking to other services.
 
 ---
 
-## 11. Điểm để ngỏ có chủ đích
+## 11. Intentionally Deferred Decisions
 
-| Điểm | Lý do chưa khóa |
+| Decision | Reason for deferral |
 |---|---|
-| Turborepo pipeline config chi tiết | Cần profile thực tế khi có đủ service |
-| `dependency-cruiser` full config | Template ở trên là khung — cần mở rộng khi codebase lớn hơn |
-| Pre-commit hooks (husky vs lefthook) | Preference, không ảnh hưởng kiến trúc |
-| Changesets / versioning strategy cho packages | Cần khi packages bắt đầu được consume bởi external |
-| Test coverage thresholds | Cần baseline từ codebase thực tế |
-| Branch strategy (trunk-based vs gitflow) | Phụ thuộc team size và release cadence |
+| Detailed Turborepo pipeline config | Needs real profiling when all services are in place |
+| Full `dependency-cruiser` config | The template above is a framework — needs expansion as the codebase grows |
+| Pre-commit hooks (husky vs lefthook) | Preference, does not affect architecture |
+| Changesets / versioning strategy for packages | Needed when packages begin to be consumed externally |
+| Test coverage thresholds | Needs baseline from actual codebase |
+| Branch strategy (trunk-based vs gitflow) | Depends on team size and release cadence |
 
 ---
 
-## 12. Bước tiếp theo
+## 12. Next Steps
 
-Tài liệu cuối cùng là **17 — Implementation Roadmap**: chia Phase A/B/C theo architecture đã khóa, vertical slices, milestone criteria, và entry conditions cho từng phase — đảm bảo team bắt đầu code đúng thứ tự và không bị trôi khỏi architecture.
+The final document is **17 — Implementation Roadmap**: dividing Phase A/B/C per the locked architecture, vertical slices, milestone criteria, and entry conditions for each phase — ensuring the team starts coding in the right order and does not drift from the architecture.

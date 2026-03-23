@@ -1,81 +1,81 @@
 # 00. Product Vision
 
-## Tên tạm thời
+## Working Title
 
 Agent OS
 
-## Tuyên ngôn sản phẩm
+## Product Manifesto
 
-Agent OS là một **hệ điều hành công việc mới** dành cho những người muốn ứng dụng AI vào công việc hằng ngày của họ. Hệ này không được thiết kế như một chatbot, một bộ công cụ rời rạc, hay một dashboard tự động hóa đơn thuần. Nó được thiết kế như một **môi trường làm việc hoàn chỉnh**, nơi con người, AI agent, dữ liệu, công cụ trực tuyến và tài nguyên tính toán cùng tồn tại trong một không gian điều hành thống nhất.
+Agent OS is a **new work operating system** designed for people who want to apply AI to their daily work. It is not designed as a chatbot, a collection of disconnected tools, or a simple automation dashboard. It is designed as a **complete work environment** where humans, AI agents, data, online tools, and computing resources coexist in a unified operational space.
 
-Agent OS phải cho phép nhiều nhóm người dùng khác nhau cùng khai thác AI theo cách có cấu trúc:
+Agent OS must enable many different user groups to leverage AI in a structured way:
 
-* người làm kỹ thuật dùng nó để đọc code, phân tích repo, viết code, chạy test, sửa lỗi, sinh báo cáo;
-* người làm marketing dùng nó để nghiên cứu, tổng hợp, lập kế hoạch, theo dõi chiến dịch, tạo tài liệu làm việc;
-* nhà quản lý dùng nó để điều phối công việc, theo dõi tiến độ, tổng hợp thông tin, tạo báo cáo, giám sát tác vụ do AI thực hiện.
+* technical users use it to read code, analyze repos, write code, run tests, fix bugs, and generate reports;
+* marketing professionals use it for research, synthesis, planning, campaign tracking, and creating work documents;
+* managers use it to coordinate tasks, track progress, consolidate information, create reports, and supervise AI-executed operations.
 
-## Bản chất hệ thống
+## System Nature
 
-Agent OS là một hệ điều hành mới theo nghĩa chức năng, không theo nghĩa kernel truyền thống. Nó phải đóng vai trò:
+Agent OS is a new operating system in the functional sense, not in the traditional kernel sense. It must serve as:
 
-* là **vỏ làm việc** cho người dùng trên nền web;
-* là **bộ điều phối** cho tác vụ và nhiều agent;
-* là **môi trường thực thi** cho các công việc trực tuyến và coding;
-* là **lớp quản trị tài nguyên, quyền hạn, artifact, và trạng thái**;
-* là **cầu nối giữa người dùng, AI model, agent engine, công cụ trực tuyến và tài nguyên local/cloud**.
+* a **work shell** for users on the web;
+* an **orchestrator** for tasks and multiple agents;
+* an **execution environment** for online work and coding;
+* a **resource management, permissions, artifact, and state layer**;
+* a **bridge between users, AI models, agent engines, online tools, and local/cloud resources**.
 
-## Định vị khác biệt
+## Differentiation
 
-Agent OS không cạnh tranh bằng một model riêng. Giá trị cốt lõi nằm ở:
+Agent OS does not compete by having a proprietary model. Its core value lies in:
 
-* khả năng tổ chức công việc bằng AI ở cấp hệ điều hành;
-* khả năng chạy và kiểm soát nhiều agent một cách có cấu trúc;
-* khả năng kết nối online tools và coding tools trong cùng một môi trường;
-* khả năng giữ ngữ cảnh công việc theo workspace thay vì theo từng cuộc chat rời rạc;
-* khả năng quan sát, can thiệp và kiểm soát hoạt động của AI trong thời gian thực.
+* the ability to organize AI-powered work at the operating system level;
+* the ability to run and control multiple agents in a structured manner;
+* the ability to connect online tools and coding tools within the same environment;
+* the ability to maintain work context per workspace rather than per isolated chat session;
+* the ability to observe, intervene, and control AI activity in real time.
 
-## Đối tượng người dùng ưu tiên
+## Priority User Segments
 
-Phiên bản đầu tiên hướng tới:
+The first version targets:
 
-* cá nhân làm việc cường độ cao với máy tính;
-* nhóm kỹ thuật nhỏ đến trung bình;
-* người làm việc tri thức cần dùng AI cho nghiên cứu, tổng hợp, phân tích, lập kế hoạch, tạo tài liệu và coding.
+* individuals who work intensively with computers;
+* small to medium technical teams;
+* knowledge workers who need AI for research, synthesis, analysis, planning, document creation, and coding.
 
-Hệ không khóa chặt vào một vai trò duy nhất. Mục tiêu là tạo một nền móng đủ mạnh để mở rộng sang nhiều loại công việc khác nhau, miễn là các công việc đó chủ yếu diễn ra qua internet, qua tài liệu số, qua phần mềm, qua dữ liệu và qua môi trường lập trình.
+The system is not locked to a single role. The goal is to create a foundation strong enough to expand into many types of work, as long as those tasks primarily occur via the internet, digital documents, software, data, and programming environments.
 
-## Trục use case ưu tiên
+## Priority Use Case Axes
 
-Agent OS phải làm rất tốt các nhóm công việc sau:
+Agent OS must excel at the following work categories:
 
-1. **online knowledge work**: nghiên cứu, tổng hợp, báo cáo, phân tích, lập kế hoạch, theo dõi công việc;
-2. **coding work**: đọc repo, audit code, sửa lỗi, refactor, tạo patch, chạy test, sinh artifact kỹ thuật;
-3. **multi-step digital workflows**: tác vụ kéo dài nhiều bước, cần nhiều agent, cần nhiều công cụ online, cần quản lý file và báo cáo.
+1. **online knowledge work**: research, synthesis, reporting, analysis, planning, task tracking;
+2. **coding work**: reading repos, code audits, bug fixes, refactoring, patch creation, running tests, generating technical artifacts;
+3. **multi-step digital workflows**: long-running tasks requiring multiple steps, multiple agents, multiple online tools, and file/report management.
 
-## Những gì chưa ưu tiên ở giai đoạn đầu
+## Out of Scope for Initial Phase
 
-Giai đoạn đầu **không** lấy các loại công việc sau làm trọng tâm:
+The initial phase does **not** prioritize the following types of work:
 
-* thiết kế đồ họa chuyên sâu;
-* dựng phim, 3D, CAD;
-* xử lý media nặng theo thời gian thực;
-* điều khiển phần cứng phức tạp;
-* các workflow đòi hỏi UI đồ họa chuyên biệt như Figma-class editor hoặc Adobe-class editor.
+* advanced graphic design;
+* film production, 3D, CAD;
+* heavy real-time media processing;
+* complex hardware control;
+* workflows requiring specialized graphical UIs like a Figma-class or Adobe-class editor.
 
-Điều này không có nghĩa hệ không bao giờ hỗ trợ, mà nghĩa là kiến trúc giai đoạn đầu không được bẻ cong vì các use case đó.
+This does not mean the system will never support them — it means the initial architecture must not be bent to accommodate those use cases.
 
-## Tầm nhìn dài hạn
+## Long-term Vision
 
-Về dài hạn, Agent OS phải giống một "Linux của công việc AI-native":
+In the long run, Agent OS should resemble a "Linux for AI-native work":
 
-* có shell giao diện riêng;
-* có process/task model riêng;
-* có workspace/file/artifact model riêng;
-* có permission/security model riêng;
-* có khả năng chạy local, cloud, hoặc hybrid;
-* có khả năng cắm nhiều model, nhiều engine, nhiều connector, nhiều execution backend.
+* with its own UI shell;
+* with its own process/task model;
+* with its own workspace/file/artifact model;
+* with its own permission/security model;
+* capable of running locally, in the cloud, or in hybrid mode;
+* capable of plugging in multiple models, engines, connectors, and execution backends.
 
-Hệ phải tồn tại như một **platform**, không chỉ là một sản phẩm một tính năng.
+The system must exist as a **platform**, not merely a single-feature product.
 
 ---
 
@@ -83,678 +83,312 @@ Hệ phải tồn tại như một **platform**, không chỉ là một sản ph
 
 ## System Goals
 
-### G1. Hệ phải là một môi trường làm việc, không phải hộp chat
+### G1. The system must be a work environment, not a chat box
 
-Mọi quyết định thiết kế phải ưu tiên mô hình workspace, task, run, artifact, terminal, file, event, agent lifecycle. Chat chỉ là một giao diện tương tác, không phải trung tâm kiến trúc.
+All design decisions must prioritize the workspace, task, run, artifact, terminal, file, event, and agent lifecycle models. Chat is merely one interaction interface, not the architectural center.
 
-### G2. Hệ phải hỗ trợ nhiều loại công việc số trên một trục thống nhất
+### G2. The system must support multiple types of digital work on a unified backbone
 
-Ít nhất phải thống nhất được hai nhóm chính:
+At minimum, it must unify two major groups:
 
-* công việc trực tuyến tri thức;
-* công việc coding.
+* online knowledge work;
+* coding work.
 
-Mọi loại công việc ban đầu phải đi qua cùng một xương sống: workspace → task → orchestrator → agent runtime → tools/execution → artifact → observability.
+All initial work types must flow through the same backbone: workspace → task → orchestrator → agent runtime → tools/execution → artifact → observability.
 
-### G3. Hệ phải ưu tiên công việc kéo dài, nhiều bước, có trạng thái
+### G3. The system must prioritize long-running, multi-step, stateful work
 
-System phải xử lý tốt các tác vụ không thể hoàn thành trong một prompt ngắn, bao gồm:
+The system must handle tasks that cannot be completed in a single short prompt, including:
 
-* phân tích repo lớn;
-* quét lỗi và tạo báo cáo;
-* nghiên cứu chủ đề nhiều nguồn;
-* lên kế hoạch và tạo tài liệu nhiều phần;
-* tác vụ cần nhiều agent và nhiều tool calls.
+* large repo analysis;
+* bug scanning and report generation;
+* multi-source topic research;
+* multi-part planning and document creation;
+* tasks requiring multiple agents and multiple tool calls.
 
-### G4. Hệ phải có kiến trúc local/cloud/hybrid ngay từ nền móng
+### G4. The system must have a local/cloud/hybrid architecture from the foundation
 
-Tài nguyên của Agent OS có thể đến từ:
+Agent OS resources may come from:
 
-* máy local của người dùng;
+* the user's local machine;
 * cloud compute;
-* dịch vụ online;
-* object storage từ cloud hoặc tại chỗ.
+* online services;
+* object storage from the cloud or on-premises.
 
-Kiến trúc phải chấp nhận điều này như một đặc tính cốt lõi, không phải tính năng phụ.
+The architecture must accept this as a core characteristic, not an afterthought.
 
-### G5. Hệ phải observable và controllable
+### G5. The system must be observable and controllable
 
-Người dùng phải thấy được:
+Users must be able to see:
 
-* task nào đang chạy;
-* agent nào đang làm gì;
-* tool nào vừa được gọi;
-* file nào vừa được tạo hoặc thay đổi;
-* tiến độ và lỗi ở đâu;
-* chi phí model hoặc tài nguyên tính toán tiêu tốn bao nhiêu.
+* which tasks are running;
+* what each agent is doing;
+* which tools were just called;
+* which files were just created or modified;
+* where progress and errors stand;
+* how much model or compute resources have been consumed.
 
-Đồng thời người dùng phải có khả năng:
+Simultaneously, users must be able to:
 
-* dừng;
-* sửa chỉ dẫn;
-* duyệt/không duyệt;
-* can thiệp thủ công;
-* chạy lại.
+* stop;
+* modify instructions;
+* approve/reject;
+* manually intervene;
+* rerun.
 
-### G6. Hệ phải permissioned và auditable
+### G6. The system must be permissioned and auditable
 
-Không được giả định AI có toàn quyền. Hệ phải hỗ trợ:
+AI must not be assumed to have full authority. The system must support:
 
-* phân quyền theo workspace;
-* phân quyền theo công cụ;
-* phân quyền theo agent;
-* cấp phát secrets theo policy;
-* ghi nhật ký hành động và lineage của artifact.
+* workspace-level permissions;
+* tool-level permissions;
+* agent-level permissions;
+* policy-based secret provisioning;
+* action logging and artifact lineage tracking.
 
-### G7. Hệ phải tool-first và online-first
+### G7. The system must be tool-first and online-first
 
-Vì định hướng công việc của hệ chủ yếu là trực tuyến và coding, nên công cụ online, API, browser automation, file operations, terminal, repo access và data connectors phải là năng lực lõi.
+Since the system's work orientation is primarily online and coding-related, online tools, APIs, browser automation, file operations, terminals, repo access, and data connectors must be core capabilities.
 
-### G8. Hệ phải engine-agnostic và model-agnostic
+### G8. The system must be engine-agnostic and model-agnostic
 
-Agent OS không được khóa vào một model hay một engine duy nhất. Hệ phải đủ trừu tượng để thay:
+Agent OS must not be locked into a single model or engine. The system must be abstract enough to swap:
 
-* model provider;
-* agent engine;
-* execution backend;
-* connector protocol.
+* model providers;
+* agent engines;
+* execution backends;
+* connector protocols.
 
-### G9. Hệ phải artifact-centric
+### G9. The system must be artifact-centric
 
-Mọi kết quả làm việc có giá trị phải trở thành artifact có thể lưu, xem, truy vết, chia sẻ và tái sử dụng. Ví dụ:
+All valuable work outputs must become artifacts that can be saved, viewed, traced, shared, and reused. Examples:
 
-* báo cáo;
-* patch;
-* file sinh ra;
-* log;
+* reports;
+* patches;
+* generated files;
+* logs;
 * findings JSON;
-* summary;
-* repo snapshot.
+* summaries;
+* repo snapshots.
 
-### G10. Hệ phải giữ vững tính hệ điều hành ở cấp sản phẩm
+### G10. The system must maintain its operating system identity at the product level
 
-Trải nghiệm tổng phải là: mở workspace, xem task, quản lý agent, điều phối tài nguyên, theo dõi outputs. Không để sản phẩm trôi thành một trợ lý chat có nhiều panel phụ.
+The overall experience must be: open a workspace, view tasks, manage agents, orchestrate resources, track outputs. The product must not drift into becoming a chat assistant with supplementary panels.
 
 ## Non-goals
 
-### N1. Không xây một chatbot đa năng rồi bọc shell bên ngoài
+### N1. Do not build a general-purpose chatbot then wrap a shell around it
 
-Chat UI không được phép trở thành lõi logic của toàn hệ.
+Chat UI must not become the core logic of the entire system.
 
-### N2. Không tối ưu cho đồ họa sáng tạo chuyên sâu ở giai đoạn đầu
+### N2. Do not optimize for advanced creative graphics in the initial phase
 
-Các use case như thiết kế đồ họa nặng, dựng video chuyên sâu, sáng tạo media lớn không được chi phối kiến trúc giai đoạn đầu.
+Use cases such as heavy graphic design, intensive video production, and large media creation must not drive the initial architecture.
 
-### N3. Không gắn chặt hệ vào một nhà cung cấp AI hay cloud duy nhất
+### N3. Do not lock the system to a single AI or cloud provider
 
-System không được phụ thuộc sống còn vào một provider duy nhất cho model, storage, sandbox hay execution.
+The system must not critically depend on a single provider for models, storage, sandboxes, or execution.
 
-### N4. Không đồng nhất orchestrator và agent engine
+### N4. Do not conflate the orchestrator and agent engine
 
-Điều phối công việc và logic suy luận của agent là hai lớp riêng, không được trộn trách nhiệm.
+Task orchestration and agent reasoning logic are two separate layers whose responsibilities must not be mixed.
 
-### N5. Không để frontend trực tiếp điều khiển execution nhạy cảm
+### N5. Do not let the frontend directly control sensitive execution
 
-Frontend chỉ là shell điều khiển. Quyền thực thi phải đi qua backend services, policy và audit.
+The frontend is only a control shell. Execution authority must go through backend services, policy, and audit.
 
-### N6. Không kỳ vọng AI tự động đúng tuyệt đối
+### N6. Do not expect AI to be perfectly correct automatically
 
-Hệ phải được thiết kế cho sự can thiệp của con người, sự thất bại, sự không chắc chắn và sự cần kiểm chứng.
-
-### N7. Không overfit vào một use case đơn lẻ
-
-Repo audit là một use case rất mạnh, nhưng Agent OS không được bị khóa thành “nền tảng audit code”. Nó phải giữ được hình dạng platform cho nhiều công việc số.
+The system must be designed with the assumption that AI will make mistakes. Observability, human-in-the-loop, taint tracking, and audit are not optional features but structural necessities.
 
 ---
 
 # 02. Architectural Invariants
 
-Các invariant dưới đây là những nguyên tắc bất biến. Trong quá trình phát triển, nếu một giải pháp làm vỡ invariant, mặc định coi giải pháp đó là sai trừ khi có quyết định kiến trúc mới ở cấp hệ thống.
+These are non-negotiable rules of the system. Any implementation that violates them is considered architecturally broken, regardless of whether it "works" in testing.
 
-## I1. Web UI là shell, không phải core
+## I1. Frontend does not directly call domain backend services
 
-Frontend chỉ là lớp hiển thị và điều khiển. Mọi logic quan trọng liên quan đến task orchestration, execution, policy, persistence, artifact và security phải nằm ở backend services.
+All requests from the frontend must go through the API Gateway. The frontend does not know the existence of internal services like orchestrator, artifact-service, or agent-runtime-service. This ensures a single point for authn/authz, response shaping, and audit.
 
-## I2. Orchestrator và Agent Engine là hai lớp riêng
+## I2. State transition authority for Task/Run/Step belongs exclusively to the Orchestrator
 
-* **Orchestrator** chịu trách nhiệm task graph, scheduling, retries, dependency, concurrency, cancellation, coordination.
-* **Agent Engine** chịu trách nhiệm reasoning, stateful tool use, memory, sub-agent logic trong phạm vi một run.
+No other service, no API handler, no frontend, and no agent may directly change the status of Task, Run, or Step. Only the Orchestrator domain service performs state transitions.
 
-Không lớp nào được nuốt trách nhiệm cốt lõi của lớp kia.
+## I3. Every domain mutation that requires an event must write DB state + outbox in the same transaction
 
-## I3. Mọi công việc phải đi qua mô hình chuẩn: Workspace → Task → Run → Step → Artifact
+This is the outbox pattern. No "fire event then write DB" or "write DB then fire event separately." Both must be in the same database transaction.
 
-Không được có đường tắt bypass hệ mô hình lõi bằng cách cho UI gọi thẳng tool hoặc cho agent sinh output mà không gắn lineage vào task/run.
+## I4. Artifact creation goes exclusively through artifact-service
 
-## I4. Artifact là first-class object
+No service, no agent, and no sandbox may directly write to artifact metadata tables or object storage. All artifact creation must go through the artifact-service API.
 
-Mọi output có giá trị phải được lưu như artifact có metadata, ownership, lineage, preview info và quyền truy cập. Output chỉ tồn tại trong log hoặc chat transcript là chưa đủ.
+## I5. Model calls go exclusively through model-gateway
 
-## I5. Sandbox là execution boundary chuẩn
+No service, no agent, and no sandbox holds provider API keys directly. All LLM calls must be routed through model-gateway.
 
-Mọi hành động nhạy cảm hoặc có side effect như:
+## I6. Fail closed when auth/policy/audit dependencies are down
 
-* chạy bash;
-* truy cập repo local;
-* ghi file;
-* chạy test/build;
-* browser automation;
-* network actions
+When auth-service, policy-service, or audit-service is unreachable, the system must deny all requests rather than silently allowing them.
 
-phải được thực hiện trong execution environment được quản lý bởi sandbox policy hoặc execution backend tương đương.
+## I7. Audit records are append-only and immutable
 
-## I6. Sandbox phải ephemeral và policy-driven
+Once written, audit records cannot be updated or deleted. The audit store must enforce this at the database level.
 
-Sandbox không được là môi trường mơ hồ sống mãi không kiểm soát. Mỗi sandbox phải có:
+## I8. Each service owns exactly one DB schema with no overlap
 
-* lifecycle rõ ràng;
-* resource quota;
-* network policy;
-* secret policy;
-* ownership theo workspace/run;
-* cleanup/archive semantics.
+No schema is owned by two services. Cross-schema foreign keys are prohibited. Cross-service data access must go through APIs or events.
 
-## I7. Mọi thay đổi trạng thái dài hạn phải có persistence hoặc event contract chuẩn
+## I9. Secret values are never stored in service databases
 
-Trạng thái hệ thống không được tồn tại âm thầm chỉ trong bộ nhớ tiến trình. Nếu trạng thái cần được UI, audit, retry hoặc recovery nhìn thấy thì nó phải đi qua DB hoặc event bus với schema chuẩn.
+Service databases only store secret references (pointers). Actual secret values reside in external vault/KMS systems.
 
-## I8. Event model là xương sống thần kinh của hệ
+## I10. Policy snapshots are immutable after sandbox provisioning
 
-Mọi service phải giao tiếp theo hợp đồng sự kiện chuẩn hóa về:
+Once a sandbox is provisioned with a policy snapshot, that snapshot cannot be modified. Any policy change requires a new sandbox.
 
-* event type;
-* correlation id;
-* causation id;
-* timestamp;
-* source;
-* payload schema.
+## I11. Correlation ID equals Trace ID
 
-Không để mỗi service tự phát event theo kiểu riêng.
+There is no separate trace ID generation. The correlation_id injected at the API Gateway is the trace_id used throughout the system.
 
-## I9. Hệ phải reproducible theo snapshot + config + artifact lineage
+## I12. SSE is an observation layer only — not a source of truth
 
-Một run quan trọng phải có thể được truy vết thông qua:
+SSE events are used for real-time UI updates and query cache invalidation. They do not carry authoritative state. If SSE is missed, refetching from APIs must yield correct state.
 
-* repo snapshot hoặc input snapshot;
-* task spec;
-* runtime config;
-* model usage;
-* tools đã gọi;
-* artifacts đã sinh ra.
+## I13. Recovery must produce events and audit records
 
-Không đạt điều này thì hệ không đủ tư cách là một platform làm việc nghiêm túc.
+Any recovery or reconciliation process must emit proper events and audit records, not silently fix state.
 
-## I10. Permissions phải tồn tại ở nhiều lớp
+## I14. Taint write must precede event emit
 
-Ít nhất phải có các lớp sau:
+When tainting an artifact, the database flag must be written before the outbox event is inserted, within the same transaction.
 
-* user-to-workspace;
-* agent-to-tool;
-* run-to-secret;
-* sandbox-to-network;
-* artifact-to-view/download.
+## I15. Model version must not be an alias
 
-Không được giản lược toàn bộ security thành mỗi đăng nhập user.
-
-## I11. Frontend không được giữ source of truth cho runtime state
-
-Frontend có thể cache hoặc render tạm thời, nhưng source of truth cho task, run, artifact, sandbox, permissions phải ở backend.
-
-## I12. Model layer phải là replaceable dependency
-
-Không được mã hóa kiến trúc sao cho mọi service biết chi tiết provider model. Model access phải qua model gateway hoặc abstraction tương đương.
-
-## I13. Tooling layer phải tách khỏi reasoning layer
-
-Agent có thể quyết định gọi tool nào, nhưng bản thân tool implementation, capability registry và execution policy phải tách khỏi prompt/reasoning logic.
-
-## I14. Human-in-the-loop là cơ chế lõi, không phải addon
-
-Hệ phải thiết kế sẵn các điểm can thiệp:
-
-* clarification;
-* approval;
-* pause/resume;
-* manual override;
-* rerun.
-
-Không thiết kế theo giả định mọi tác vụ đều tự động hoàn toàn.
-
-## I15. Local, cloud và hybrid đều là topology hợp lệ
-
-Kiến trúc không được mặc định rằng mọi thứ chạy cloud hoặc mọi thứ chạy local. System phải giữ abstraction đủ để hỗ trợ ba chế độ:
-
-* local-first;
-* cloud-first;
-* hybrid.
+When recording model version in artifact provenance, the resolved specific version must be used, never an alias like "latest" or "claude-3".
 
 ---
 
 # 03. Bounded Contexts
 
-Các bounded context dưới đây chia hệ thành những miền trách nhiệm rõ ràng. Đây là nền cho service map, repo structure, API contracts và ownership sau này.
-
-## C1. Identity and Access Context
-
-### Trách nhiệm
-
-* người dùng;
-* tổ chức/nhóm;
-* workspace membership;
-* role;
-* session;
-* access policy;
-* secret ownership baseline.
-
-### Không chịu trách nhiệm
-
-* scheduling task;
-* reasoning;
-* artifact generation.
-
-### Thực thể lõi
-
-* User
-* Organization
-* WorkspaceMember
-* RoleBinding
-* Session
-
-## C2. Workspace Context
-
-### Trách nhiệm
-
-* định nghĩa không gian làm việc logic;
-* metadata của workspace;
-* cấu hình mặc định của workspace;
-* liên kết repo, file root, policies và assets của workspace.
-
-### Thực thể lõi
-
-* Workspace
-* WorkspaceSettings
-* WorkspaceProfile
-* WorkspaceConnection
-
-### Ghi chú
-
-Workspace là đơn vị làm việc nền tảng của Agent OS. Hầu hết object quan trọng đều phải thuộc về một workspace.
-
-## C3. Task Orchestration Context
-
-### Trách nhiệm
-
-* tạo task;
-* decomposition;
-* dependency graph;
-* scheduling;
-* retry;
-* cancellation;
-* concurrency policy;
-* run lifecycle ở cấp điều phối.
-
-### Thực thể lõi
-
-* Task
-* TaskDependency
-* TaskRun
-* SchedulePolicy
-* RetryPolicy
-* RunAssignment
-
-### Ghi chú
-
-Đây là ngữ cảnh gần với “kernel/control plane” nhất. Nó không làm reasoning chi tiết; nó tổ chức dòng công việc.
-
-## C4. Agent Runtime Context
-
-### Trách nhiệm
-
-* dựng agent;
-* giữ runtime state cho một run;
-* quản lý prompt/runtime config;
-* tool invocation flow;
-* sub-agent logic nội bộ nếu có;
-* summary/reasoning outputs;
-* memory trong phạm vi runtime.
-
-### Thực thể lõi
-
-* AgentProfile
-* AgentInvocation
-* RuntimeState
-* ToolCall
-* ToolResult
-* RuntimeSummary
-
-### Ghi chú
-
-Đây là nơi một engine kiểu DeerFlow, LangGraph hay engine nội bộ sẽ sống.
-
-## C5. Tool and Connector Context
-
-### Trách nhiệm
-
-* capability registry;
-* connector tới Git, browser, API, MCP, file operations;
-* tool schema;
-* tool execution policy;
-* tool metadata.
-
-### Thực thể lõi
-
-* ToolDefinition
-* ConnectorDefinition
-* CapabilityBinding
-* ToolPolicy
-* ConnectorCredentialRef
-
-### Ghi chú
-
-Ngữ cảnh này định nghĩa “hệ có thể làm gì” và “được phép làm gì”, nhưng không tự quyết định khi nào làm.
-
-## C6. Execution and Sandbox Context
-
-### Trách nhiệm
-
-* cấp phát môi trường thực thi;
-* mount workspace/uploads/outputs;
-* terminal session;
-* resource quota;
-* secret injection;
-* network policy;
-* teardown/archive.
-
-### Thực thể lõi
-
-* Sandbox
-* SandboxProfile
-* SandboxLease
-* ResourceQuota
-* NetworkPolicy
-* SecretBinding
-
-### Ghi chú
-
-Đây là execution boundary cứng của hệ.
-
-## C7. Artifact and File Context
-
-### Trách nhiệm
-
-* repo snapshots;
-* uploads;
-* outputs;
-* generated reports;
-* patches;
-* file previews;
-* lineage của artifact;
-* quyền xem/tải về.
-
-### Thực thể lõi
-
-* Artifact
-* ArtifactVersion
-* ArtifactLineage
-* RepoSnapshot
-* FileHandle
-
-### Ghi chú
-
-Artifact là đối tượng hạng nhất. Không được xem nó chỉ là tệp đính kèm phụ.
-
-## C8. Event and Telemetry Context
-
-### Trách nhiệm
-
-* event schema;
-* publish/subscribe semantics;
-* correlation ids;
-* audit log;
-* metrics;
-* traces;
-* run timeline.
-
-### Thực thể lõi
-
-* DomainEvent
-* AuditRecord
-* MetricSample
-* TraceSpan
-* TimelineEntry
-
-### Ghi chú
-
-Đây là ngữ cảnh đảm bảo observability, replayability và debuggability.
-
-## C9. Model Gateway Context
-
-### Trách nhiệm
-
-* chọn provider;
-* route model;
-* fallback;
-* token accounting;
-* cost tracking;
-* quota;
-* caching chính sách nếu cần.
-
-### Thực thể lõi
-
-* ModelProvider
-* ModelProfile
-* ModelRoute
-* UsageRecord
-* BudgetPolicy
-
-### Ghi chú
-
-Model access phải được gom vào đây để giữ engine-agnostic và provider-agnostic.
-
-## C10. Human Control Context
-
-### Trách nhiệm
-
-* clarification requests;
-* approvals;
-* pause/resume;
-* manual intervention;
-* rerun triggers;
-* operator notes.
-
-### Thực thể lõi
-
-* ApprovalRequest
-* ClarificationRequest
-* InterventionAction
-* ResumeToken
-* OperatorNote
-
-### Ghi chú
-
-Đây là miền dành riêng cho việc con người tham gia vào vòng đời công việc.
-
-## C11. Web Shell Context
-
-### Trách nhiệm
-
-* desktop shell;
-* window/panel layout;
-* workspace navigation;
-* task manager UI;
-* file explorer UI;
-* terminal UI;
-* notifications;
-* realtime rendering.
-
-### Không chịu trách nhiệm
-
-* source of truth cho runtime state;
-* execution logic;
-* policy enforcement ở backend.
-
-### Thực thể giao diện
-
-* ViewState
-* PanelState
-* SubscriptionState
-* NotificationItem
-
-## Quan hệ mức cao giữa các context
-
-1. **Identity and Access** cấp quyền vào **Workspace**.
-2. **Workspace** là nơi neo cho **Task Orchestration**, **Artifacts**, **Tools**, **Policies**.
-3. **Task Orchestration** sinh ra **TaskRun** và giao cho **Agent Runtime** hoặc execution workers.
-4. **Agent Runtime** dùng **Tool and Connector** cùng **Model Gateway**.
-5. **Execution and Sandbox** cung cấp môi trường để tool có side effect hoạt động.
-6. **Artifact and File** lưu input/output/snapshot của mọi run.
-7. **Event and Telemetry** quan sát tất cả context.
-8. **Human Control** có thể chặn, sửa hoặc duyệt các đoạn của luồng chạy.
-9. **Web Shell** hiển thị và điều khiển tất cả thông qua API và event streams.
+## Context Map
+
+| ID | Context Name | Core Responsibility |
+|---|---|---|
+| C1 | Identity and Access | User identity, authentication, authorization, roles |
+| C2 | Workspace | Workspace lifecycle, members, settings, connections |
+| C3 | Task Orchestration | Task/Run/Step lifecycle, state machines, scheduling, cancellation |
+| C4 | Agent Runtime | AgentInvocation execution, reasoning loop, tool dispatch |
+| C5 | Tool and Connector | Tool registry, connector management, capability declaration |
+| C6 | Execution and Sandbox | Sandbox lifecycle, policy enforcement, terminal, secret mounting |
+| C7 | Artifact and File | Artifact creation, lineage, taint, signed URLs, provenance |
+| C8 | Event and Telemetry | Event store, telemetry, metrics, alerting |
+| C9 | Model Gateway | LLM routing, fallback, cost tracking, version resolution |
+| C10 | Human Control | Approval flows, notifications, human-in-the-loop |
+| C11 | Web Shell / Control | Frontend shell, API gateway, SSE gateway |
+
+## Context Relationships
+
+### Upstream/Downstream
+
+* C3 (Task Orchestration) is upstream of C4 (Agent Runtime): Orchestrator assigns work to Agent Runtime.
+* C4 (Agent Runtime) is upstream of C6 (Execution and Sandbox): Agent Runtime requests sandbox provisioning.
+* C4 (Agent Runtime) is upstream of C7 (Artifact and File): Agent Runtime registers artifacts through artifact-service.
+* C9 (Model Gateway) is upstream of C4 (Agent Runtime): Model Gateway serves model calls.
+* C1 (Identity and Access) is upstream of all contexts: provides identity and permission decisions.
+
+### Anti-corruption Layers
+
+* C11 (Web Shell) communicates with all backend contexts exclusively through C11's API Gateway — never directly.
+* C6 (Execution and Sandbox) communicates with C9 (Model Gateway) only indirectly — sandbox has no model provider credentials.
 
 ---
 
-# Quy ước nền tảng cho dự án
-
-## Quy ước đặt tên
-
-* Tài liệu: `NN-topic-name.md`
-* Service: `kebab-case`
-* Python package: `snake_case`
-* TypeScript file: `kebab-case.ts` hoặc `PascalCase.tsx` cho component
-* DB table: `snake_case` số nhiều
-* Event type: `dotted.case`
-* API path: `/v1/...`
-* ID chuẩn: `prefix_uuid` hoặc `prefix_nanoid`
-
-## Quy ước mô hình
-
-* Mọi object nghiệp vụ quan trọng phải có `id`, `workspace_id`, `created_at`, `updated_at`
-* Mọi object chạy thực tế phải có `status`
-* Mọi resource có side effect phải có owner rõ ràng
-* Mọi run quan trọng phải có correlation id xuyên suốt event chain
-
----
-
-# Project Log
-
-## Tiến độ đã hoàn thành
-
-* Đã chốt triết lý: architecture-first, implementation-increments
-* Đã chốt định vị sản phẩm: Agent OS là hệ điều hành công việc AI-native trên nền web
-* Đã chốt đối tượng và use case nền: knowledge work trực tuyến + coding work
-* Đã chốt hướng topology: local / cloud / hybrid đều là hợp lệ
-* Đã hoàn thành bộ tài liệu nền 00–03 gồm vision, goals, invariants, bounded contexts
-
-## Chưa thực hiện
-
-* Core domain model chi tiết
-* State machines
-* Event contracts cụ thể
-* API contracts
-* Sandbox security model chi tiết
-* Permission model chi tiết
-* Repo structure chính thức
-* Service map chính thức
-
-## Trạng thái cấu trúc dự án
-
-* Chưa tạo code repository chính thức
-* Chưa tạo service skeleton
-* Chưa khóa DB schema
-* Chưa khóa event schema
-* Chưa khóa deployment topology
-
-## Bước tiếp theo đề xuất
-
-* 04 Core Domain Model
-* 05 State Machines
-* 06 Event Contracts
-* 07 API Contracts
+# 04-12 (See individual document files)
 
 ---
 
 # 13. Deployment Topology
 
-## Mục tiêu của topology
+## Topology Objectives
 
-Deployment topology phải hiện thực đúng toàn bộ kiến trúc lõi đã khóa ở docs 00–12. Topology không được tự tạo ra đường tắt triển khai khiến API bypass state machine, service viết chéo vào bảng không sở hữu, policy fail-open, hoặc event/outbox bị xem nhẹ. Mọi quyết định topology phải phục vụ các do-not-break (DNB1–DNB12) và các pressure points từ gate review.
+The deployment topology must correctly implement the entire core architecture locked in docs 00–12. The topology must not create deployment shortcuts that allow APIs to bypass state machines, services to cross-write into tables they do not own, policies to fail open, or events/outbox to be neglected. Every topology decision must serve the do-not-break rules (DNB1–DNB12) and pressure points from the gate review.
 
-## Nguyên tắc topology bất biến
+## Immutable Topology Principles
 
-### T13-1. Topology phải tôn trọng bounded contexts
+### T13-1. Topology must respect bounded contexts
 
-Mỗi bounded context quan trọng phải có deployment responsibility rõ ràng. Không bắt buộc mỗi context là một process riêng, nhưng bắt buộc mỗi context có owner runtime, storage boundary và credential boundary rõ ràng.
+Each important bounded context must have clear deployment responsibility. It is not mandatory that each context be a separate process, but it is mandatory that each context has a clear owner runtime, storage boundary, and credential boundary.
 
-### T13-2. State transition authority phải nằm ở Orchestrator domain service
+### T13-2. State transition authority must reside in the Orchestrator domain service
 
-Bất kỳ topology nào cũng phải đảm bảo chỉ Orchestrator domain service được phép mutate trạng thái của `Task`, `Run`, `Step`. Không service nào khác có database write quyền trực tiếp lên các status field đó.
+Any topology must ensure that only the Orchestrator domain service is permitted to mutate the state of `Task`, `Run`, `Step`. No other service has direct database write permission on those status fields.
 
-### T13-3. Artifact service phải có storage boundary thật
+### T13-3. Artifact service must have a real storage boundary
 
-Artifact metadata và artifact content phải được bảo vệ bằng boundary triển khai thật sự: DB credentials riêng cho metadata, object storage credentials riêng cho blob, và không service nào ngoài Artifact service có write access trực tiếp vào artifact metadata tables.
+Artifact metadata and artifact content must be protected by a real deployment boundary: separate DB credentials for metadata, separate object storage credentials for blobs, and no service other than the Artifact service has direct write access to artifact metadata tables.
 
-### T13-4. Event log và outbox là hạ tầng bắt buộc
+### T13-4. Event log and outbox are mandatory infrastructure
 
-Không topology nào hợp lệ nếu bỏ qua outbox hoặc xem event bus như chi tiết tùy chọn. Event store / message bus là thành phần first-class của deployment.
+No topology is valid if it omits the outbox or treats the event bus as an optional detail. The event store / message bus is a first-class deployment component.
 
-### T13-5. Fail closed phải đúng cả khi dependency down
+### T13-5. Fail closed must hold even when dependencies are down
 
-Nếu auth, policy, secret broker, audit, hay model gateway bị down, topology phải khiến hệ fail closed thay vì fail open.
+If auth, policy, secret broker, audit, or model gateway is down, the topology must cause the system to fail closed rather than fail open.
 
-### T13-6. Local, cloud, hybrid đều là topology hợp lệ
+### T13-6. Local, cloud, and hybrid are all valid topologies
 
-Kiến trúc triển khai phải hỗ trợ ba mode:
+The deployment architecture must support three modes:
 
 * local-first;
 * cloud-first;
 * hybrid.
 
-Khác biệt giữa các mode được nằm ở placement của service, storage, execution backend và trust boundary, không được làm thay đổi domain model.
+Differences between modes lie in the placement of services, storage, execution backends, and trust boundaries — they must not alter the domain model.
 
-### T13-7. Recovery order là một phần của topology
+### T13-7. Recovery order is part of the topology
 
-Startup order, readiness semantics, recovery sequence và degraded modes là thành phần của topology chứ không phải ghi chú vận hành phụ.
+Startup order, readiness semantics, recovery sequences, and degraded modes are components of the topology, not supplementary operational notes.
 
-## Deployment units cấp cao
+## High-level Deployment Units
 
 ### 13.1 Web Shell
 
-Vai trò:
+Role:
 
-* cung cấp UI shell;
-* gọi API;
-* subscribe SSE;
-* render timeline, artifact lineage, task graph, terminal.
+* provides the UI shell;
+* calls APIs;
+* subscribes to SSE;
+* renders timeline, artifact lineage, task graph, terminal.
 
 Boundary:
 
-* không giữ source of truth;
-* không cầm secrets hệ thống;
-* không gọi model provider hay sandbox trực tiếp.
+* does not hold source of truth;
+* does not hold system secrets;
+* does not call model providers or sandboxes directly.
 
 ### 13.2 API Surface
 
-Bao gồm:
+Includes:
 
 * API Gateway / BFF;
 * SSE Gateway.
 
-Vai trò:
+Role:
 
 * command/query/human intervention surface;
 * authn/authz entry point;
 * response shaping;
-* SSE fan-out cho client.
+* SSE fan-out to clients.
 
 Boundary:
 
-* không thực thi business state transition trực tiếp;
-* không mutate domain state ngoài việc gọi đúng domain service.
+* does not execute business state transitions directly;
+* does not mutate domain state except by calling the appropriate domain service.
 
 ### 13.3 Orchestrator Plane
 
-Vai trò:
+Role:
 
 * task decomposition;
 * scheduling;
@@ -770,38 +404,38 @@ Storage authority:
 
 ### 13.4 Agent Runtime Plane
 
-Vai trò:
+Role:
 
-* chạy AgentInvocation;
-* duy trì runtime state của agent;
+* runs AgentInvocations;
+* maintains agent runtime state;
 * tool orchestration;
 * summary generation;
 * runtime-side event emission;
-* reconcile state sau restart.
+* reconciles state after restart.
 
 Storage authority:
 
-* `AgentInvocation` runtime state của chính nó.
+* `AgentInvocation` runtime state of its own.
 
 ### 13.5 Execution Plane
 
-Bao gồm:
+Includes:
 
 * Sandbox Manager;
 * terminal session broker;
-* execution sidecars nếu cần;
+* execution sidecars if needed;
 * network policy enforcement;
 * secret mounting subsystem.
 
 Storage authority:
 
 * `Sandbox` metadata;
-* execution logs tạm thời;
+* temporary execution logs;
 * terminal session metadata.
 
 ### 13.6 Artifact Plane
 
-Bao gồm:
+Includes:
 
 * Artifact Service;
 * object storage;
@@ -815,7 +449,7 @@ Storage authority:
 
 ### 13.7 Control Services
 
-Bao gồm:
+Includes:
 
 * Auth / Identity;
 * Policy service;
@@ -825,97 +459,97 @@ Bao gồm:
 * Event bus / Event store;
 * telemetry stack.
 
-## Deployment topology chuẩn theo mode
+## Standard Deployment Topology by Mode
 
 ### 13.8 Local-first topology
 
-Phù hợp cho:
+Suitable for:
 
-* developer machine;
-* small team lab;
-* self-hosted cá nhân.
+* developer machines;
+* small team labs;
+* individual self-hosted setups.
 
-Cấu hình khuyến nghị:
+Recommended configuration:
 
 * Web Shell: local browser + local frontend server;
-* API Gateway, Orchestrator, Agent Runtime, Artifact Service, Sandbox Manager: chạy trong Docker Compose;
+* API Gateway, Orchestrator, Agent Runtime, Artifact Service, Sandbox Manager: running in Docker Compose;
 * PostgreSQL, Redis, object storage compatible, event bus: local containers;
 * sandboxes: local Docker runtime;
 * model gateway: local proxy + optional cloud provider access.
 
-Đặc tính:
+Characteristics:
 
-* đơn giản triển khai;
-* debugging mạnh;
-* trust boundary yếu hơn cloud nhưng vẫn phải giữ credential boundary logic;
-* phù hợp cho development và single-node operation.
+* simple to deploy;
+* strong debugging capabilities;
+* weaker trust boundary than cloud but must still maintain credential boundary logic;
+* suitable for development and single-node operation.
 
-Điều cấm:
+Prohibited:
 
-* không vì local mode mà cho mọi service dùng chung DB superuser;
-* không vì local mode mà bypass artifact isolation hay state transition authority.
+* local mode does not justify having all services use a shared DB superuser;
+* local mode does not justify bypassing artifact isolation or state transition authority.
 
 ### 13.9 Cloud-first topology
 
-Phù hợp cho:
+Suitable for:
 
-* managed deployment;
-* multi-tenant hoặc enterprise-managed environment.
+* managed deployments;
+* multi-tenant or enterprise-managed environments.
 
-Cấu hình khuyến nghị:
+Recommended configuration:
 
 * Web Shell: CDN / edge served;
 * API/SSE Gateway: autoscaled stateless services;
-* Orchestrator: replicated control plane với leader election hoặc single writer discipline;
+* Orchestrator: replicated control plane with leader election or single writer discipline;
 * Agent Runtime: horizontally scaled workers;
-* Sandbox Manager: control service cho container runtime / Kubernetes jobs;
+* Sandbox Manager: control service for container runtime / Kubernetes jobs;
 * object storage: managed S3-compatible;
 * database: managed PostgreSQL;
 * event bus: clustered deployment;
-* audit storage: durable managed store tách riêng.
+* audit storage: durable managed store, separate.
 
-Đặc tính:
+Characteristics:
 
-* scale tốt;
-* policy và credential boundary rõ;
-* cần readiness, startup ordering, reconcilers mạnh;
-* cần hard multi-tenant isolation nếu đi enterprise.
+* scales well;
+* clear policy and credential boundaries;
+* requires robust readiness, startup ordering, and reconcilers;
+* requires hard multi-tenant isolation for enterprise use.
 
 ### 13.10 Hybrid topology
 
-Phù hợp cho:
+Suitable for:
 
-* UI/control plane trên cloud;
-* execution hoặc repo/data giữ local hoặc VPC riêng.
+* UI/control plane on the cloud;
+* execution or repo/data kept local or in a private VPC.
 
-Mô hình chuẩn:
+Standard model:
 
 * Web Shell + API Surface + Orchestrator: cloud;
-* local execution gateway hoặc self-hosted runner: on-prem / laptop / VPC riêng;
-* Artifact plane: có thể cloud, local, hoặc split theo sensitivity;
-* model gateway: cloud proxy nhưng policy-aware;
-* secrets: scoped theo execution site.
+* local execution gateway or self-hosted runner: on-prem / laptop / private VPC;
+* Artifact plane: can be cloud, local, or split by sensitivity;
+* model gateway: cloud proxy but policy-aware;
+* secrets: scoped per execution site.
 
-Điều kiện bắt buộc:
+Mandatory conditions:
 
-* execution site phải được xem như một trust boundary riêng;
-* event relay, audit relay và policy snapshot phải nhất quán giữa cloud plane và local execution plane;
-* không cho phép execution node tự quyết định policy ngoài snapshot được cấp.
+* execution site must be treated as a separate trust boundary;
+* event relay, audit relay, and policy snapshot must be consistent between cloud plane and local execution plane;
+* execution nodes must not make policy decisions beyond the snapshot they were given.
 
-## Trust boundaries
+## Trust Boundaries
 
 ### 13.11 Boundary A — User boundary
 
-Ranh giới giữa browser/client và backend. Ở đây phải enforce:
+The boundary between browser/client and backend. Must enforce:
 
 * authn;
 * session integrity;
 * CSRF/XSS hardening;
-* không lộ secrets.
+* no secret exposure.
 
 ### 13.12 Boundary B — Control plane boundary
 
-Ranh giới giữa API/Gateway và internal services. Ở đây phải enforce:
+The boundary between API/Gateway and internal services. Must enforce:
 
 * service authentication;
 * command authorization;
@@ -924,7 +558,7 @@ Ranh giới giữa API/Gateway và internal services. Ở đây phải enforce:
 
 ### 13.13 Boundary C — Execution boundary
 
-Ranh giới giữa control plane và sandbox/execution plane. Ở đây phải enforce:
+The boundary between control plane and sandbox/execution plane. Must enforce:
 
 * policy snapshot freeze;
 * secret injection constraints;
@@ -934,29 +568,29 @@ Ranh giới giữa control plane và sandbox/execution plane. Ở đây phải e
 
 ### 13.14 Boundary D — Storage boundary
 
-Ranh giới giữa services và storage systems. Ở đây phải enforce:
+The boundary between services and storage systems. Must enforce:
 
-* DB credentials riêng theo ownership;
+* separate DB credentials per ownership;
 * schema-level isolation;
 * object storage bucket/prefix policy;
 * signed URL issuance control.
 
 ### 13.15 Boundary E — Audit boundary
 
-Audit store phải được xem là trust boundary riêng vì audit là non-reconstructible. Không service nào được sửa hoặc xóa audit record sau khi ghi.
+The audit store must be treated as a separate trust boundary because audit is non-reconstructible. No service may modify or delete audit records after writing.
 
-## Database topology và credential isolation
+## Database Topology and Credential Isolation
 
 ### 13.16 Database strategy
 
-Khuyến nghị:
+Recommended:
 
-* một PostgreSQL cluster chung ở giai đoạn đầu;
-* tách schema theo ownership context;
-* tách DB user theo service;
-* write permission chỉ cấp cho schema mình sở hữu.
+* a single shared PostgreSQL cluster in the initial phase;
+* schemas separated by ownership context;
+* DB users separated by service;
+* write permissions granted only to owned schemas.
 
-Ví dụ schema:
+Example schemas:
 
 * `workspace_core`
 * `orchestrator_core`
@@ -968,47 +602,47 @@ Ví dụ schema:
 
 ### 13.17 DB credential rules
 
-* Orchestrator service account: write chỉ vào `orchestrator_core`;
-* Agent Runtime: write chỉ vào `agent_runtime`;
-* Artifact Service: write chỉ vào `artifact_core`;
-* API Gateway: không có write trực tiếp vào domain schemas;
-* sandbox sidecars: không có DB write credentials;
-* debug tools / migration tools không được dùng app credentials.
+* Orchestrator service account: write only to `orchestrator_core`;
+* Agent Runtime: write only to `agent_runtime`;
+* Artifact Service: write only to `artifact_core`;
+* API Gateway: no direct write to domain schemas;
+* sandbox sidecars: no DB write credentials;
+* debug tools / migration tools must not use application credentials.
 
-### 13.18 Hard requirement từ gate review
+### 13.18 Hard requirements from gate review
 
-* PP1: không service nào ngoài Orchestrator domain service được direct update `Task/Run/Step.status`;
-* PP10: Artifact schema/bảng phải có credential isolation thật, không phải quy ước miệng;
-* PP3: Agent Engine phải có persistent store và recovery path của riêng nó.
+* PP1: no service other than the Orchestrator domain service may directly update `Task/Run/Step.status`;
+* PP10: Artifact schema/tables must have real credential isolation, not just verbal convention;
+* PP3: Agent Engine must have its own persistent store and recovery path.
 
-## Event bus, event store và outbox topology
+## Event Bus, Event Store, and Outbox Topology
 
 ### 13.19 Event system components
 
-Topology chuẩn gồm ba lớp:
+The standard topology consists of three layers:
 
-1. service local outbox;
+1. service-local outbox;
 2. message relay / outbox dispatcher;
 3. event bus / event store consumer ecosystem.
 
-### 13.20 Outbox invariants trong triển khai
+### 13.20 Outbox invariants in deployment
 
-* mọi domain mutation cần event phải ghi DB state + outbox trong cùng transaction;
-* service chỉ `ready` khi outbox relay của chính nó healthy;
-* sau restart, service không nhận command mới trước khi reconcile outbox backlog tối thiểu đến ngưỡng an toàn.
+* every domain mutation that requires an event must write DB state + outbox in the same transaction;
+* a service is only `ready` when its own outbox relay is healthy;
+* after restart, a service must not accept new commands before reconciling the outbox backlog to at least a safe threshold.
 
 ### 13.21 Event persistence
 
-Ít nhất cần:
+At minimum requires:
 
-* durable event store hoặc durable bus retention;
-* replay support cho recovery/rebuild;
-* partitioning theo scope đã khóa ở doc 06;
-* correlation searchable index.
+* durable event store or durable bus retention;
+* replay support for recovery/rebuild;
+* partitioning by the scope locked in doc 06;
+* correlation-searchable index.
 
-## Recovery-aware startup topology
+## Recovery-aware Startup Topology
 
-### 13.22 Startup order chuẩn
+### 13.22 Standard startup order
 
 1. database + object storage + event infrastructure + audit storage;
 2. auth/policy/secret broker/model gateway;
@@ -1019,58 +653,58 @@ Topology chuẩn gồm ba lớp:
 7. API/SSE gateways;
 8. web shell.
 
-Lý do:
+Rationale:
 
-* control plane không được nhận traffic trước khi storage, policy, audit và event infrastructure sẵn sàng;
-* runtime không được nhận work trước khi orchestrator và artifact service available.
+* the control plane must not accept traffic before storage, policy, audit, and event infrastructure are ready;
+* the runtime must not accept work before orchestrator and artifact service are available.
 
 ### 13.23 Readiness semantics
 
-Một service được xem là ready khi và chỉ khi:
+A service is considered ready if and only if:
 
-* dependency bắt buộc reachable;
-* own schema migrations hoàn tất;
-* own outbox relay healthy;
-* recovery/reconcile phase hoàn tất;
-* policy/audit constraints trong mode hợp lệ.
+* mandatory dependencies are reachable;
+* own schema migrations are complete;
+* own outbox relay is healthy;
+* recovery/reconcile phase is complete;
+* policy/audit constraints are in a valid mode.
 
-### 13.24 Recovery order sau crash
+### 13.24 Recovery order after crash
 
 #### Orchestrator
 
 * flush/reconcile outbox;
-* rebuild `Task/Run/Step` state từ event log + durable store;
+* rebuild `Task/Run/Step` state from event log + durable store;
 * resume watchers;
-* chỉ sau đó mới accept command mới.
+* only then accept new commands.
 
 #### Agent Runtime
 
-* rebuild/reconcile `AgentInvocation` từ durable store và event log;
-* xác định mọi invocation có `started` nhưng chưa terminal;
-* interrupt hoặc reconcile chúng theo policy trước khi nhận work mới.
+* rebuild/reconcile `AgentInvocation` from durable store and event log;
+* identify all invocations that have `started` but no terminal event;
+* interrupt or reconcile them per policy before accepting new work.
 
 #### Execution Plane
 
-* liệt kê sandbox còn active;
-* đối chiếu với runtime/orchestrator;
-* terminate hoặc rebind theo policy;
-* emit required events còn thiếu nếu có repair workflow chính thức.
+* enumerate sandboxes still active;
+* cross-reference with runtime/orchestrator;
+* terminate or rebind per policy;
+* emit required events that are missing if a formal repair workflow exists.
 
 ### 13.25 Dual-crash requirement
 
-Nếu Orchestrator và Agent Runtime cùng crash, Agent Runtime không được assume không có in-flight invocation. Nó phải reconcile từ event log trước. Đây là hard requirement bám gate review PP3.
+If Orchestrator and Agent Runtime crash simultaneously, Agent Runtime must not assume there are no in-flight invocations. It must reconcile from the event log first. This is a hard requirement per gate review PP3.
 
-## Sandbox topology
+## Sandbox Topology
 
 ### 13.26 Sandbox provisioning backend
 
-Giai đoạn đầu có thể dùng:
+The initial phase may use:
 
 * local Docker runtime;
 * Kubernetes jobs/pods;
 * remote execution runners.
 
-Nhưng abstraction phải giữ chung các trường:
+However, the abstraction must maintain the following common fields:
 
 * sandbox id;
 * sandbox attempt index;
@@ -1081,13 +715,13 @@ Nhưng abstraction phải giữ chung các trường:
 * secret bindings;
 * active flag.
 
-### 13.27 Sandbox 1-N với AgentInvocation
+### 13.27 Sandbox 1-N with AgentInvocation
 
-Một AgentInvocation có thể có nhiều Sandbox records theo các attempt khác nhau, nhưng chỉ một active sandbox tại một thời điểm. Topology và schema phải hỗ trợ `sandbox_attempt_index`. Đây là clarify bắt buộc từ gate review.
+An AgentInvocation may have multiple Sandbox records across different attempts, but only one active sandbox at any given time. The topology and schema must support `sandbox_attempt_index`. This is a mandatory clarification from the gate review.
 
 ### 13.28 Filesystem mounts
 
-Tách rõ:
+Clearly separated:
 
 * workspace mount;
 * uploads mount;
@@ -1095,120 +729,120 @@ Tách rõ:
 * temp mount;
 * secrets mount.
 
-`/secrets` phải unmount trước khi emit `sandbox.terminated`.
+`/secrets` must be unmounted before emitting `sandbox.terminated`.
 
-## Object storage topology
+## Object Storage Topology
 
 ### 13.29 Bucket/prefix strategy
 
-Tách ít nhất theo nhóm:
+Separated at minimum by group:
 
 * uploads;
 * repo snapshots;
 * generated artifacts;
-* logs/attachments nếu cần;
-* quarantined/tainted artifacts nếu policy yêu cầu.
+* logs/attachments if needed;
+* quarantined/tainted artifacts if policy requires.
 
 ### 13.30 Signed URL issuance
 
-Chỉ Artifact Service được phát signed URL. URL phải ngắn hạn, scope theo artifact version và chịu check `state × taint × permission` tại thời điểm phát URL.
+Only the Artifact Service may issue signed URLs. URLs must be short-lived, scoped per artifact version, and subject to `state × taint × permission` checks at the time of issuance.
 
-## Audit topology
+## Audit Topology
 
 ### 13.31 Audit durability
 
-Audit store phải có durability SLA cao hơn logs thông thường vì audit là non-reconstructible. Topology phải ưu tiên:
+The audit store must have a higher durability SLA than regular logs because audit is non-reconstructible. The topology must prioritize:
 
 * append-only storage;
-* tamper-evident design nếu có thể;
-* backup riêng;
-* access cực hạn chế.
+* tamper-evident design if possible;
+* separate backup;
+* extremely restricted access.
 
 ### 13.32 Audit degraded mode
 
-Nếu audit write cho quyết định bắt buộc thất bại thì system fail closed theo docs 09 và 12. Điều này phải được phản ánh bằng readiness và circuit-breaking chứ không chỉ trong code logic.
+If an audit write for a mandatory decision fails, the system fails closed per docs 09 and 12. This must be reflected through readiness and circuit-breaking, not just in code logic.
 
-## Realtime topology
+## Realtime Topology
 
 ### 13.33 SSE gateway
 
-SSE gateway có thể scale stateless nếu:
+The SSE gateway can scale statelessly if:
 
-* event source durable;
-* hỗ trợ replay bằng `Last-Event-ID`;
-* subscription scope enforce theo workspace/task/run.
+* the event source is durable;
+* replay is supported via `Last-Event-ID`;
+* subscription scope is enforced per workspace/task/run.
 
 ### 13.34 Realtime degradation
 
-Mất SSE không được làm thay đổi execution semantics. Chỉ ảnh hưởng khả năng quan sát realtime; state truth vẫn ở backend stores và event history.
+Loss of SSE must not change execution semantics. It only affects real-time observability; state truth remains in backend stores and event history.
 
-## Deployment SLOs cấp topology
+## Topology-level Deployment SLOs
 
-### 13.35 SLO gợi ý giai đoạn đầu
+### 13.35 Suggested initial-phase SLOs
 
-* API command ack: p95 < 500ms trong điều kiện bình thường;
-* SSE propagation: p95 < 2s cho event không nặng;
+* API command ack: p95 < 500ms under normal conditions;
+* SSE propagation: p95 < 2s for non-heavy events;
 * Artifact lineage view: p95 < 2s;
-* sandbox provisioning: theo class, có budget riêng;
-* startup recovery: bounded, observable, có phase logs.
+* sandbox provisioning: per class, with a dedicated budget;
+* startup recovery: bounded, observable, with phase logs.
 
-## Topology do-not-break mapping
+## Topology Do-Not-Break Mapping
 
-Topology phải hiện thực và không được phá:
+The topology must implement and must not break:
 
-* DNB1 Run không resume;
+* DNB1 Run does not resume;
 * DNB2 fail closed;
-* DNB3 security violation không auto-recover;
-* DNB4 degraded mode không auto-escalate permission;
-* DNB5 recovery có event + audit;
-* DNB6 artifact creation chỉ qua Artifact Service;
+* DNB3 security violation does not auto-recover;
+* DNB4 degraded mode does not auto-escalate permissions;
+* DNB5 recovery produces events + audit;
+* DNB6 artifact creation goes exclusively through Artifact Service;
 * DNB7 trace_id = correlation_id;
 * DNB8 execution trace ≠ provenance trace;
-* DNB9 agent không tự nâng quyền;
-* DNB10 state transition authority ở Orchestrator;
-* DNB11 taint write trước event emit;
-* DNB12 model version không là alias khi artifact registration.
+* DNB9 agent cannot self-escalate permissions;
+* DNB10 state transition authority resides in Orchestrator;
+* DNB11 taint write precedes event emit;
+* DNB12 model version must not be an alias during artifact registration.
 
-## Những điều bị cấm ở tầng topology
+## Prohibited at the Topology Level
 
-1. Cho nhiều service dùng chung DB superuser trong production mode.
-2. Đặt Artifact metadata và Orchestrator tables dưới cùng write credential.
-3. Cho sandbox gọi model provider trực tiếp.
-4. Cho API Gateway ghi trực tiếp `Task/Run/Step` state.
-5. Cho debug scripts sửa artifact lineage ngoài Artifact Service.
-6. Cho service nhận traffic trước khi outbox/recovery phase hoàn tất.
-7. Xem local mode là ngoại lệ để phá security boundary.
-8. Để audit storage cùng mức durability với debug logs.
+1. Having multiple services share a DB superuser in production mode.
+2. Placing Artifact metadata and Orchestrator tables under the same write credential.
+3. Allowing sandboxes to call model providers directly.
+4. Allowing the API Gateway to directly write `Task/Run/Step` state.
+5. Allowing debug scripts to modify artifact lineage outside of Artifact Service.
+6. Allowing a service to accept traffic before outbox/recovery phase is complete.
+7. Treating local mode as an exception to bypass security boundaries.
+8. Giving audit storage the same durability level as debug logs.
 
-## Kết quả kỳ vọng của doc 13
+## Expected Outcomes of Doc 13
 
-Sau khi chốt topology, team phải trả lời được rõ ràng:
+After finalizing the topology, the team must be able to clearly answer:
 
-* service nào chạy ở đâu;
-* trust boundary nằm ở đâu;
-* DB/schema credential nào thuộc ai;
-* startup/recovery order là gì;
-* local/cloud/hybrid khác nhau ở placement nào;
-* pressure points PP1, PP3, PP10 được topology xử lý bằng hạ tầng ra sao.
+* which service runs where;
+* where trust boundaries are;
+* which DB/schema credentials belong to whom;
+* what the startup/recovery order is;
+* where local/cloud/hybrid differ in placement;
+* how pressure points PP1, PP3, PP10 are handled by the topology through infrastructure.
 
 ---
 
 # Project Log Update
 
-## Tiến độ đã hoàn thành
+## Completed Progress
 
-* Hoàn thành bộ lõi 00–12
-* Hoàn thành gate review 00–12
-* Hoàn thành doc 13 Deployment Topology
+* Completed core docs 00–12
+* Completed gate review 00–12
+* Completed doc 13 Deployment Topology
 
-## Clarify / follow-up cần phản ánh ở doc khác
+## Clarifications / follow-ups to reflect in other docs
 
-* Doc 04: thêm `sandbox_attempt_index` hoặc cờ equivalent cho quan hệ 1-N từ AgentInvocation đến Sandbox
-* Doc 05: khóa rõ `AgentInvocation compensated` → `Step failed`
-* Doc 06: `run.timed_out` phải emit tiếp `run.cancelled` trong cùng outbox transaction
-* Doc 12: approval timeout watcher không chỉ phụ thuộc scheduler; `run_config` lock + event emit phải đi trong cùng outbox transaction
+* Doc 04: add `sandbox_attempt_index` or equivalent flag for the 1-N relationship from AgentInvocation to Sandbox
+* Doc 05: lock the `AgentInvocation compensated` → `Step failed` transition
+* Doc 06: `run.timed_out` must emit a subsequent `run.cancelled` in the same outbox transaction
+* Doc 12: approval timeout watcher must not depend solely on a scheduler; `run_config` lock + event emit must be in the same outbox transaction
 
-## Bước tiếp theo đề xuất
+## Proposed Next Steps
 
 * 15 Backend Service Map
 * 14 Frontend Application Map
