@@ -1,0 +1,199 @@
+# Hardened overlay — production-like security posture for staging/CI.
+#
+# Requires Docker Compose v2.24.6+ (for !reset YAML tag support).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.hardened.yml up
+#
+# Changes from base:
+#   - Internal service ports stripped (only api-gateway, sse-gateway, web exposed)
+#   - APP_ENV=production
+#   - Docker socket NOT mounted (execution-service uses noop backend)
+#   - Read-only root filesystem where possible
+#   - no-new-privileges security opt
+#   - Postgres/Redis ports stripped (no host access)
+
+services:
+  # ── Infrastructure: no host port bindings ─────────────────────
+  postgres:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  # ── Internal services: hardened, no host ports ────────────────
+  auth-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  policy-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  orchestrator:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  agent-runtime:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  artifact-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  execution-service:
+    ports: !reset []
+    volumes: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+      EXECUTION_BACKEND: noop
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  workspace-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  secret-broker:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  model-gateway:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  audit-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  event-store:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  notification-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  telemetry-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  # ── Public services: keep ports, hardened ──────────────────────
+  api-gateway:
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  sse-gateway:
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    environment:
+      NODE_ENV: production
+      DEPLOYMENT_PROFILE: hardened
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true

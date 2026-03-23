@@ -1,0 +1,102 @@
+# Local development overlay — explicit dev profile.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up
+#
+# This overlay makes dev defaults explicit:
+#   - All internal service ports exposed to host (for debugging)
+#   - APP_ENV=development across all services
+#   - Docker socket mounted for execution-service (local sandbox)
+#   - Dev-friendly resource limits
+
+services:
+  postgres:
+    ports:
+      - "5434:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  # ── All services: explicit dev mode ──────────────────────────
+  auth-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  policy-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  orchestrator:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  agent-runtime:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  artifact-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  execution-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+      EXECUTION_BACKEND: docker-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  workspace-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  secret-broker:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  model-gateway:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  audit-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  event-store:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  notification-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  telemetry-service:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  api-gateway:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  sse-gateway:
+    environment:
+      APP_ENV: development
+      DEPLOYMENT_PROFILE: local
+
+  web:
+    environment:
+      NODE_ENV: development

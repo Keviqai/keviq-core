@@ -1,0 +1,251 @@
+# Cloud-like overlay — simulates externalized infrastructure.
+#
+# Requires Docker Compose v2.24.6+ (for !reset YAML tag support).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.cloud.yml \
+#     --env-file .env.cloud up
+#
+# Changes from base:
+#   - All config externalized via env vars (no dev defaults)
+#   - Internal service ports stripped
+#   - Docker socket NOT mounted
+#   - Execution backend configurable (noop / docker-local / k8s-job)
+#   - Artifact storage backend configurable (local / s3)
+#   - Database URLs point to external-ready vars
+#   - Secrets must be provided (no hardcoded defaults)
+
+services:
+  # ── Infrastructure: externalized ──────────────────────────────
+  postgres:
+    ports: !reset []
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-mona_os}
+
+  redis:
+    ports: !reset []
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+
+  # ── Control Services ──────────────────────────────────────────
+  auth-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      AUTH_DB_URL: ${AUTH_DB_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  policy-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      POLICY_DB_URL: ${POLICY_DB_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  # ── Domain Services ───────────────────────────────────────────
+  orchestrator:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      ORCHESTRATOR_DB_URL: ${ORCHESTRATOR_DB_URL}
+      ORCHESTRATOR_EVENT_BUS_URL: ${EVENT_BUS_URL}
+      ORCHESTRATOR_POLICY_SERVICE_URL: ${POLICY_SERVICE_URL:-http://policy-service:8000}
+      AGENT_RUNTIME_URL: ${AGENT_RUNTIME_URL:-http://agent-runtime:8000}
+      EXECUTION_SERVICE_URL: ${EXECUTION_SERVICE_URL:-http://execution-service:8000}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  agent-runtime:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      AGENT_RUNTIME_DB_URL: ${AGENT_RUNTIME_DB_URL}
+      AGENT_RUNTIME_EVENT_BUS_URL: ${EVENT_BUS_URL}
+      MODEL_GATEWAY_URL: ${MODEL_GATEWAY_URL:-http://model-gateway:8000}
+      ARTIFACT_SERVICE_URL: ${ARTIFACT_SERVICE_URL:-http://artifact-service:8000}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  artifact-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      ARTIFACT_DB_URL: ${ARTIFACT_DB_URL}
+      ARTIFACT_STORAGE_BACKEND: ${ARTIFACT_STORAGE_BACKEND:-local}
+      ARTIFACT_STORAGE_PATH: ${ARTIFACT_STORAGE_PATH:-/data/artifacts}
+      ARTIFACT_S3_BUCKET: ${ARTIFACT_S3_BUCKET:-}
+      ARTIFACT_S3_REGION: ${ARTIFACT_S3_REGION:-}
+      EVENT_STORE_URL: ${EVENT_STORE_URL:-http://event-store:8000}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  execution-service:
+    ports: !reset []
+    volumes: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      EXECUTION_DB_URL: ${EXECUTION_DB_URL}
+      EXECUTION_BACKEND: ${EXECUTION_BACKEND:-noop}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  workspace-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      WORKSPACE_DB_URL: ${WORKSPACE_DB_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  secret-broker:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      SECRET_DB_URL: ${SECRET_DB_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  model-gateway:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      MODEL_GW_DB_URL: ${MODEL_GW_DB_URL}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  audit-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      AUDIT_DB_URL: ${AUDIT_DB_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  event-store:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      EVENT_STORE_DB_URL: ${EVENT_STORE_DB_URL}
+      EVENT_STORE_EVENT_BUS_URL: ${EVENT_BUS_URL}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  notification-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      NOTIFICATION_DB_URL: ${NOTIFICATION_DB_URL}
+      NOTIFICATION_EVENT_BUS_URL: ${EVENT_BUS_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  telemetry-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      TELEMETRY_EVENT_BUS_URL: ${EVENT_BUS_URL}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  # ── Public Services ───────────────────────────────────────────
+  api-gateway:
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:8000}
+      WORKSPACE_SERVICE_URL: ${WORKSPACE_SERVICE_URL:-http://workspace-service:8000}
+      POLICY_SERVICE_URL: ${POLICY_SERVICE_URL:-http://policy-service:8000}
+      ORCHESTRATOR_URL: ${ORCHESTRATOR_URL:-http://orchestrator:8000}
+      ARTIFACT_SERVICE_URL: ${ARTIFACT_SERVICE_URL:-http://artifact-service:8000}
+      EVENT_STORE_URL: ${EVENT_STORE_URL:-http://event-store:8000}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  sse-gateway:
+    environment:
+      APP_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+      EVENT_BUS_URL: ${EVENT_BUS_URL}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:8000}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    environment:
+      NODE_ENV: production
+      DEPLOYMENT_PROFILE: cloud
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true

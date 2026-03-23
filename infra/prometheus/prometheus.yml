@@ -1,0 +1,79 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "api-gateway"
+    static_configs:
+      - targets: ["api-gateway:8000"]
+    metrics_path: /metrics
+
+  - job_name: "orchestrator"
+    static_configs:
+      - targets: ["orchestrator:8000"]
+    metrics_path: /metrics
+
+  - job_name: "agent-runtime"
+    static_configs:
+      - targets: ["agent-runtime:8000"]
+    metrics_path: /metrics
+
+  - job_name: "auth-service"
+    static_configs:
+      - targets: ["auth-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "workspace-service"
+    static_configs:
+      - targets: ["workspace-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "policy-service"
+    static_configs:
+      - targets: ["policy-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "artifact-service"
+    static_configs:
+      - targets: ["artifact-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "execution-service"
+    static_configs:
+      - targets: ["execution-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "event-store"
+    static_configs:
+      - targets: ["event-store:8000"]
+    metrics_path: /metrics
+
+  - job_name: "model-gateway"
+    static_configs:
+      - targets: ["model-gateway:8000"]
+    metrics_path: /metrics
+
+  - job_name: "audit-service"
+    static_configs:
+      - targets: ["audit-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "notification-service"
+    static_configs:
+      - targets: ["notification-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "secret-broker"
+    static_configs:
+      - targets: ["secret-broker:8000"]
+    metrics_path: /metrics
+
+  - job_name: "telemetry-service"
+    static_configs:
+      - targets: ["telemetry-service:8000"]
+    metrics_path: /metrics
+
+  - job_name: "sse-gateway"
+    static_configs:
+      - targets: ["sse-gateway:8000"]
+    metrics_path: /metrics

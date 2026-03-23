@@ -1,0 +1,86 @@
+# Production-like overlay: removes internal service host port bindings,
+# sets APP_ENV=production, and overrides dev-only secrets.
+#
+# Requires Docker Compose v2.24.6+ (for !reset YAML tag support).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Only api-gateway (8080), sse-gateway (8006), web (3000), and
+# infrastructure (postgres, redis) retain host port bindings.
+
+services:
+  # ── Internal services: remove host port bindings ────────────
+  orchestrator:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  agent-runtime:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  artifact-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  execution-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  model-gateway:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  event-store:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  auth-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  policy-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  workspace-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  secret-broker:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  audit-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  notification-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  telemetry-service:
+    ports: !reset []
+    environment:
+      APP_ENV: production
+
+  # ── Public services: keep ports, set prod mode ──────────────
+  api-gateway:
+    environment:
+      APP_ENV: production
+
+  sse-gateway:
+    environment:
+      APP_ENV: production

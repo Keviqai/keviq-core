@@ -1,0 +1,33 @@
+{
+  "name": "keviq-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Keviq Core — Agent OS for AI agent orchestration",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "python -m pytest tools/arch-test/ -v",
+    "arch-test": "python -m pytest tools/arch-test/ -v",
+    "dep-check": "depcruise apps packages --config .dependency-cruiser.js",
+    "e2e": "npx playwright test",
+    "e2e:ui": "npx playwright test --ui",
+    "e2e:report": "npx playwright show-report tests/e2e/report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Keviqai/keviq-core.git"
+  },
+  "packageManager": "pnpm@10.22.0",
+  "devDependencies": {
+    "dependency-cruiser": "^17.3.8",
+    "turbo": "^2.8.16",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "remark-gfm": "^4.0.1"
+  }
+}

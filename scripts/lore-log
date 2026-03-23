@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ═══════════════════════════════════════════════
+# LORE-LOG — Query decision history from commits
+# Usage:
+#   scripts/lore-log                          # all Lore fields
+#   scripts/lore-log "Rejected:"              # only rejected alternatives
+#   scripts/lore-log "Confidence: low"        # only low-confidence commits
+#   scripts/lore-log "Constraints:.*Redis"    # constraints mentioning Redis
+# ═══════════════════════════════════════════════
+
+pattern="${1:-Rationale:|Constraints:|Rejected:|Confidence:|Tested:}"
+
+git log --format='%H%n%s%n%b%n---END---' \
+| awk -v pat="$pattern" '
+  BEGIN { RS="---END---\n"; FS="\n" }
+  {
+    hash=$1
+    subject=$2
+    matched=0
+    block=""
+    for (i=3; i<=NF; i++) {
+      if ($i ~ pat) {
+        matched=1
+        block = block "  " $i "\n"
+      }
+    }
+    if (matched) {
+      print "\033[1;34mcommit\033[0m " substr(hash, 1, 10)
+      print "\033[1m" subject "\033[0m"
+      printf "%s", block
+      print ""
+    }
+  }'

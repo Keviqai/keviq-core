@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ═══════════════════════════════════════════════
+# LORE-COMMIT — Commit with decision context
+# Usage:
+#   scripts/lore-commit "fix(api): handle null tenant" "why" "constraints" "rejected" "confidence" "tested"
+#
+# Fields:
+#   $1 subject     (required) — Conventional Commit subject line
+#   $2 rationale   (required) — Why this approach was chosen
+#   $3 constraints (optional) — Key limits
+#   $4 rejected    (optional) — Alternative considered and why rejected
+#   $5 confidence  (optional) — high|medium|low (default: medium)
+#   $6 tested      (optional) — not run|partial|full (default: partial)
+# ═══════════════════════════════════════════════
+
+subject="${1:-}"
+rationale="${2:-}"
+constraints="${3:-}"
+rejected="${4:-}"
+confidence="${5:-medium}"
+tested="${6:-partial}"
+
+if [ -z "$subject" ] || [ -z "$rationale" ]; then
+  echo "Usage:"
+  echo '  scripts/lore-commit "fix(api): handle null tenant" "why" "constraints" "rejected" "confidence" "tested"'
+  echo ""
+  echo "Required: subject, rationale"
+  echo "Optional: constraints, rejected, confidence (default: medium), tested (default: partial)"
+  exit 1
+fi
+
+# Validate confidence
+case "$confidence" in
+  high|medium|low) ;;
+  *) echo "ERROR: Confidence must be high|medium|low (got: $confidence)"; exit 1 ;;
+esac
+
+# Validate tested
+case "$tested" in
+  "not run"|partial|full) ;;
+  *) echo "ERROR: Tested must be 'not run'|partial|full (got: $tested)"; exit 1 ;;
+esac
+
+tmpfile="$(mktemp)"
+trap 'rm -f "$tmpfile"' EXIT
+
+cat > "$tmpfile" <<EOF
+$subject
+
+Rationale: $rationale
+EOF
+
+# Only add optional fields if non-empty
+[ -n "$constraints" ] && echo "Constraints: $constraints" >> "$tmpfile"
+[ -n "$rejected" ]    && echo "Rejected: $rejected" >> "$tmpfile"
+
+cat >> "$tmpfile" <<EOF
+Confidence: $confidence
+Tested: $tested
+EOF
+
+git commit -F "$tmpfile"

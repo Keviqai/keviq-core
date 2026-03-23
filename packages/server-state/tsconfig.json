@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "paths": {
+      "@keviq/api-client": ["../api-client/src"],
+      "@keviq/domain-types": ["../domain-types/src"]
+    }
+  },
+  "include": ["src"]
+}

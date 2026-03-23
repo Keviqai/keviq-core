@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "@keviq/domain-types": ["../domain-types/src"]
+    }
+  },
+  "include": ["src"]
+}

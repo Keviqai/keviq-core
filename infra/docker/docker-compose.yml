@@ -1,0 +1,545 @@
+services:
+  # ── Infrastructure ──────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: superuser
+      POSTGRES_PASSWORD: superpassword
+      POSTGRES_DB: mona_os
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superuser -d mona_os"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  redis:
+    image: redis:7
+    command: redis-server --requirepass ${REDIS_PASSWORD:-dev-redis-password}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-dev-redis-password}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ── Control Services ────────────────────────────────────────
+  auth-service:
+    build:
+      context: ../..
+      dockerfile: apps/auth-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      AUTH_DB_URL: postgresql://auth_user:auth_pass@postgres/mona_os
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-dev-secret-change-in-production}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: auth-service
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8007:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  policy-service:
+    build:
+      context: ../..
+      dockerfile: apps/policy-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      POLICY_DB_URL: postgresql://policy_user:policy_pass@postgres/mona_os
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8009:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ── Domain Services ─────────────────────────────────────────
+  orchestrator:
+    build:
+      context: ../..
+      dockerfile: apps/orchestrator/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      ORCHESTRATOR_DB_URL: postgresql://orchestrator_user:orch_pass@postgres/mona_os
+      ORCHESTRATOR_EVENT_BUS_URL: redis://:${REDIS_PASSWORD:-dev-redis-password}@redis:6379
+      ORCHESTRATOR_POLICY_SERVICE_URL: http://policy-service:8000
+      AGENT_RUNTIME_URL: http://agent-runtime:8000
+      AGENT_DISPATCH_TIMEOUT_MS: ${AGENT_DISPATCH_TIMEOUT_MS:-120000}
+      DEFAULT_MODEL_ALIAS: ${DEFAULT_MODEL_ALIAS:-default}
+      SKIP_SANDBOX_PROVISIONING: ${SKIP_SANDBOX_PROVISIONING:-false}
+      EXECUTION_SERVICE_URL: http://execution-service:8000
+      ARTIFACT_SERVICE_URL: http://artifact-service:8000
+      WORKSPACE_SERVICE_URL: http://workspace-service:8000
+      NOTIFICATION_SERVICE_URL: http://notification-service:8000
+      AUDIT_SERVICE_URL: http://audit-service:8000
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: orchestrator
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      policy-service: { condition: service_healthy }
+      notification-service: { condition: service_healthy }
+      audit-service: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  agent-runtime:
+    build:
+      context: ../..
+      dockerfile: apps/agent-runtime/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      AGENT_RUNTIME_DB_URL: postgresql://agent_runtime_user:agent_pass@postgres/mona_os
+      AGENT_RUNTIME_EVENT_BUS_URL: redis://:${REDIS_PASSWORD:-dev-redis-password}@redis:6379
+      MODEL_GATEWAY_URL: http://model-gateway:8000
+      ARTIFACT_SERVICE_URL: http://artifact-service:8000
+      EXECUTION_SERVICE_URL: http://execution-service:8000
+      MAX_TOOL_TURNS: ${MAX_TOOL_TURNS:-5}
+      INVOCATION_BUDGET_MS: ${INVOCATION_BUDGET_MS:-120000}
+      INVOCATION_STUCK_TIMEOUT_S: ${INVOCATION_STUCK_TIMEOUT_S:-300}
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      TOOL_APPROVAL_MODE: ${TOOL_APPROVAL_MODE:-gate}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: agent-runtime
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  artifact-service:
+    build:
+      context: ../..
+      dockerfile: apps/artifact-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      ARTIFACT_DB_URL: postgresql://artifact_user:artifact_pass@postgres/mona_os
+      ARTIFACT_STORAGE_PATH: /data/artifacts
+      EVENT_STORE_URL: http://event-store:8000
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: artifact-service
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    volumes:
+      - artifact_data:/data/artifacts
+    ports:
+      - "8003:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  execution-service:
+    build:
+      context: ../..
+      dockerfile: apps/execution-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      EXECUTION_DB_URL: postgresql://execution_user:exec_pass@postgres/mona_os
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: execution-service
+      # Use noop backend by default — no Docker socket needed.
+      # Set EXECUTION_BACKEND=docker-local and mount /var/run/docker.sock
+      # for real sandbox execution (Linux host required).
+      EXECUTION_BACKEND: ${EXECUTION_BACKEND:-noop}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8004:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  workspace-service:
+    build:
+      context: ../..
+      dockerfile: apps/workspace-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      WORKSPACE_DB_URL: postgresql://workspace_user:workspace_pass@postgres/mona_os
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: workspace-service
+      AUTH_SERVICE_URL: http://auth-service:8000
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+      auth-service: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8008:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  secret-broker:
+    build:
+      context: ../..
+      dockerfile: apps/secret-broker/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      SECRET_DB_URL: postgresql://secret_user:secret_pass@postgres/mona_os
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY:-ZGV2LWVuY3J5cHRpb24ta2V5LWNoYW5nZS1pbi1wcm8=}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8010:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  model-gateway:
+    build:
+      context: ../..
+      dockerfile: apps/model-gateway/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      MODEL_GW_DB_URL: postgresql://model_gw_user:model_gw_pass@postgres/mona_os
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: model-gateway
+      # Claude Code CLI bridge provider (local-only, optional)
+      MODEL_GW_PROVIDER_CLAUDE_CODE_CLI_ENDPOINT: ${CLAUDE_BRIDGE_URL:-http://claude-bridge:8000}
+      MODEL_GW_PROVIDER_CLAUDE_CODE_CLI_ENABLED: ${CLAUDE_BRIDGE_ENABLED:-false}
+      MODEL_GW_ALIAS_CLAUDE_CODE_CLI_SONNET_PROVIDER: claude_code_cli
+      MODEL_GW_ALIAS_CLAUDE_CODE_CLI_SONNET_MODEL: sonnet
+      MODEL_GW_ALIAS_CLAUDE_CODE_CLI_OPUS_PROVIDER: claude_code_cli
+      MODEL_GW_ALIAS_CLAUDE_CODE_CLI_OPUS_MODEL: opus
+      MODEL_GW_ALIAS_CLAUDE_CODE_CLI_HAIKU_PROVIDER: claude_code_cli
+      MODEL_GW_ALIAS_CLAUDE_CODE_CLI_HAIKU_MODEL: haiku
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8011:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  audit-service:
+    build:
+      context: ../..
+      dockerfile: apps/audit-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      AUDIT_DB_URL: postgresql://audit_user:audit_pass@postgres/mona_os
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: audit-service
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8012:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  event-store:
+    build:
+      context: ../..
+      dockerfile: apps/event-store/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      EVENT_STORE_DB_URL: postgresql://event_store_user:event_pass@postgres/mona_os
+      EVENT_STORE_EVENT_BUS_URL: redis://:${REDIS_PASSWORD:-dev-redis-password}@redis:6379
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: event-store
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8013:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  notification-service:
+    build:
+      context: ../..
+      dockerfile: apps/notification-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      NOTIFICATION_DB_URL: postgresql://notification_user:notif_pass@postgres/mona_os
+      NOTIFICATION_EVENT_BUS_URL: redis://:${REDIS_PASSWORD:-dev-redis-password}@redis:6379
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8014:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  telemetry-service:
+    build:
+      context: ../..
+      dockerfile: apps/telemetry-service/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      TELEMETRY_DB_URL: postgresql://telemetry_user:telemetry_pass@postgres/mona_os
+      TELEMETRY_EVENT_BUS_URL: redis://:${REDIS_PASSWORD:-dev-redis-password}@redis:6379
+      API_GATEWAY_METRICS_URL: http://api-gateway:8000/metrics
+      ORCHESTRATOR_METRICS_URL: http://orchestrator:8000/metrics
+      AGENT_RUNTIME_METRICS_URL: http://agent-runtime:8000/metrics
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8015:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ── API Surface ─────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: apps/api-gateway/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      AUTH_SERVICE_URL: http://auth-service:8000
+      WORKSPACE_SERVICE_URL: http://workspace-service:8000
+      POLICY_SERVICE_URL: http://policy-service:8000
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      ARTIFACT_SERVICE_URL: http://artifact-service:8000
+      EVENT_STORE_URL: http://event-store:8000
+      AUDIT_SERVICE_URL: http://audit-service:8000
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-dev-secret-change-in-production}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      INTERNAL_AUTH_SECRET: ${INTERNAL_AUTH_SECRET:-dev-internal-auth-secret-change-in-production}
+      SERVICE_NAME: api-gateway
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      auth-service: { condition: service_healthy }
+      policy-service: { condition: service_healthy }
+      workspace-service: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  sse-gateway:
+    build:
+      context: ../..
+      dockerfile: apps/sse-gateway/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      EVENT_BUS_URL: redis://:${REDIS_PASSWORD:-dev-redis-password}@redis:6379
+      AUTH_SERVICE_URL: http://auth-service:8000
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      redis: { condition: service_healthy }
+      auth-service: { condition: service_healthy }
+    restart: unless-stopped
+    ports:
+      - "8006:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ── Claude Bridge (local-only) ───────────────────────────────
+  claude-bridge:
+    build:
+      context: ../..
+      dockerfile: apps/claude-bridge/Dockerfile
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/live')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    environment:
+      APP_ENV: development
+    ports:
+      - "8016:8000"
+    profiles:
+      - local-bridge
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ── Frontend ─────────────────────────────────────────────────
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const h=require('http'),o=require('os');h.get('http://'+o.hostname()+':3000',r=>{process.exit(r.statusCode<500?0:1)}).on('error',()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    depends_on:
+      api-gateway: { condition: service_healthy }
+    environment:
+      API_GATEWAY_URL: http://api-gateway:8000
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+volumes:
+  postgres_data:
+  artifact_data:
