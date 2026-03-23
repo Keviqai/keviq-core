@@ -5,67 +5,111 @@
 <h1 align="center">Keviq Core</h1>
 
 <p align="center">
-  <strong>The open-source operating system for AI agents.</strong><br/>
-  Orchestrate tasks. Run agents. Manage artifacts — with full provenance, permissions, and observability.
+  <strong>Open-source infrastructure for running AI agents in production.</strong><br/>
+  The missing control plane between your agent framework and your organization.
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
-  <a href="#architecture"><img src="https://img.shields.io/badge/services-15-blueviolet" alt="15 Services" /></a>
+  <a href="#architecture"><img src="https://img.shields.io/badge/services-15_microservices-blueviolet" alt="15 Services" /></a>
   <a href="#current-status"><img src="https://img.shields.io/badge/tests-1546_passing-brightgreen" alt="Tests" /></a>
-  <a href="#quick-start"><img src="https://img.shields.io/badge/docker-compose_up-2496ED?logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/docker_compose_up-2496ED?logo=docker&logoColor=white" alt="Docker" /></a>
 </p>
 
 <p align="center">
+  <a href="#the-problem">Why this exists</a> &nbsp;&bull;&nbsp;
   <a href="#quick-start">Quick Start</a> &nbsp;&bull;&nbsp;
-  <a href="#features">Features</a> &nbsp;&bull;&nbsp;
   <a href="#architecture">Architecture</a> &nbsp;&bull;&nbsp;
-  <a href="docs/docs-index.md">Documentation</a> &nbsp;&bull;&nbsp;
-  <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="docs/docs-index.md">Docs</a> &nbsp;&bull;&nbsp;
+  <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
 ---
 
-## What is Keviq Core?
+## The Problem
 
-Keviq Core is a **self-hosted platform** for running AI agents as structured, observable work — not chat threads. It provides the control plane, execution environment, and audit trail that teams need to deploy AI agents in production.
+Every team building with AI agents hits the same infrastructure wall.
 
-Think of it as **Kubernetes for AI workflows**: you define tasks, the system orchestrates agent runs, tracks every artifact with full provenance, and gives humans approval gates at critical decision points.
+You can build a working agent in an afternoon with LangChain, CrewAI, or AutoGen. But putting that agent into production — where real users depend on it, real data flows through it, and real decisions get made — requires solving a set of hard infrastructure problems that **no agent framework addresses**:
 
-### Who is this for?
+**1. Agents produce outputs nobody can trace.**
+An agent writes a report, modifies a codebase, or generates a financial analysis. Three weeks later, someone asks: "Which model version produced this? What data did it use? Who approved it?" Without provenance infrastructure, the answer is "we don't know."
 
-- **Teams deploying AI agents** who need governance, audit trails, and human-in-the-loop controls
-- **Platform engineers** building internal AI tooling on a proven microservices foundation
-- **Developers** who want a production-ready agent orchestration stack they can self-host and extend
+**2. There is no safe way to let agents act autonomously.**
+Today it's all-or-nothing: either you give the agent full access and hope for the best, or you don't deploy it. There's no standard infrastructure for "pause here, get human approval, then continue" — the way CI/CD systems solved this for code deployment years ago.
+
+**3. Every team rebuilds the same platform from scratch.**
+Auth, RBAC, multi-tenancy, secret management, rate limiting, audit logging, event bus, health checks, metrics, a web dashboard — this is 6+ months of infrastructure work before you write a single line of agent logic. And every team builds it differently, poorly, or not at all.
+
+**4. Agent outputs are second-class citizens.**
+Outputs end up in chat logs, temp directories, or S3 buckets with no metadata. There's no unified system for versioning, searching, comparing, annotating, or tracing the lineage of what agents produce — the way Git solved this for source code.
+
+These aren't theoretical problems. They're the reason most AI agent projects stall between "impressive demo" and "trusted production system."
 
 ---
 
-## Features
+## What Keviq Core Does
 
-### Agent Orchestration
-- **Task-driven execution** — define work as tasks, not prompts. Tasks spawn runs, runs execute steps, steps produce artifacts
-- **Multi-agent coordination** — orchestrator manages task graphs, dependencies, retries, and cancellation
-- **Tool execution loop** — agents call tools in sandboxed environments with budget limits and guardrails
-- **Model gateway** — route to any OpenAI-compatible LLM (OpenAI, Azure, vLLM, Ollama) through a unified proxy
+Keviq Core is the **infrastructure layer** that sits between your agent framework and your users. It's not another way to build agents — it's the production platform they run on.
 
-### Human-in-the-Loop
-- **Approval gates** — require human approval before sensitive agent actions execute
-- **Review workflows** — assign reviewers, track approval decisions, get notified on outcomes
-- **Real-time observation** — watch agent execution live via SSE streams with 35+ event types
+```
+┌──────────────────────────────────────────────────────┐
+│                    Your Agent Logic                   │
+│           (LangChain, CrewAI, AutoGen, custom)        │
+└──────────────────────┬───────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────┐
+│                   KEVIQ CORE                          │
+│                                                       │
+│  Task Orchestration    Artifact Management            │
+│  ├─ Task → Run → Step  ├─ Versioned outputs           │
+│  ├─ Retries, timeouts  ├─ Full provenance chain       │
+│  └─ State machines      └─ Lineage, search, tags      │
+│                                                       │
+│  Human-in-the-Loop     Platform Infrastructure        │
+│  ├─ Approval gates      ├─ Auth + RBAC + workspaces   │
+│  ├─ Review workflows    ├─ Secret management          │
+│  └─ Real-time SSE       ├─ Audit log (every action)   │
+│                         ├─ Prometheus + Grafana        │
+│                         └─ Rate limiting, health       │
+│                                                       │
+│  Web UI (21 pages) ─── API Gateway ─── Event Bus      │
+└───────────────────────────────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────┐
+│              PostgreSQL + Redis                        │
+│        (13 isolated schemas, outbox pattern)           │
+└───────────────────────────────────────────────────────┘
+```
 
-### Artifact Management
-- **First-class artifacts** — every output is a versioned, typed artifact with metadata and ownership
-- **Full provenance** — track which agent, task, run, and step produced each artifact
-- **Lineage graph** — trace artifact derivation chains across workflows
-- **Search & tags** — filter by 10+ parameters, tag artifacts for organization
-- **Preview & export** — inline preview, diff view, annotations, and bulk export
+### Core capabilities
 
-### Platform & Security
-- **Multi-tenant workspaces** — isolated environments with membership and role-based access
-- **Capability-based RBAC** — fine-grained permissions at the workspace level
-- **Secret management** — encrypted storage with versioned key rotation
-- **Audit logging** — every state change is recorded and queryable
-- **Observability** — Prometheus metrics on all 15 services, Grafana dashboards included
+| Capability | What it solves |
+|-----------|---------------|
+| **Task orchestration** | Define work as structured tasks (not prompts). The orchestrator manages the lifecycle: scheduling, retries, cancellation, dependency resolution. Every task produces a traceable chain: Task → Run → Steps → Artifacts. |
+| **Artifact provenance** | Every output is a first-class artifact with metadata, ownership, version history, and a provenance chain linking it back to the exact agent, model, task, and inputs that produced it. Search across artifacts by 10+ parameters. |
+| **Human approval gates** | Pause agent execution at critical decision points. Route approval requests to specific reviewers. Resume or reject with full audit trail. The pattern CI/CD uses for deployments, applied to AI agent actions. |
+| **Multi-tenant workspaces** | Isolated environments with membership, roles, and capability-based RBAC. Teams share infrastructure without sharing data or permissions. |
+| **Execution sandboxing** | Agent tool calls execute in policy-driven sandbox environments with resource quotas, network policies, and cleanup semantics. |
+| **Secret management** | Encrypted credential storage with versioned key rotation. Agents access secrets through the broker — never directly. |
+| **Full observability** | Prometheus metrics on all 15 services. Grafana dashboards included. Real-time SSE event streams (35+ event types). Structured audit logging for every state change. |
+| **Production-ready API** | JWT auth, internal service auth, rate limiting (tiered: read/write/global), health checks on every service. One API gateway handles routing, auth validation, and workspace isolation. |
+
+### How it compares
+
+| | Agent Frameworks<br/>(LangChain, CrewAI) | Chat Platforms<br/>(Dify, FlowiseAI) | **Keviq Core** |
+|---|---|---|---|
+| Agent reasoning | Built-in | Visual builder | **Bring your own** |
+| Task orchestration | None | Basic chains | **Full lifecycle** (Task→Run→Step) |
+| Artifact provenance | None | None | **First-class** with lineage |
+| Human approval gates | None | None | **Built-in** with review workflows |
+| Multi-tenancy + RBAC | None | Basic | **Workspace-level** with capabilities |
+| Audit trail | None | Partial | **Every action logged** |
+| Observability | None | Basic | **Prometheus + Grafana** on all services |
+| Self-hosted | N/A | Yes | **Yes** (Docker Compose or K8s) |
+| Architecture | Library | Monolith | **15 microservices** (independent scaling) |
+
+**Keviq Core is not a replacement for agent frameworks.** It's the infrastructure those frameworks need to run in production. Use LangChain to build your agent's reasoning. Use Keviq Core to deploy, observe, govern, and trust it.
 
 ---
 
@@ -74,7 +118,7 @@ Think of it as **Kubernetes for AI workflows**: you define tasks, the system orc
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2
-- [Node.js 22+](https://nodejs.org/) & [pnpm](https://pnpm.io/) (for frontend dev)
+- [Node.js 22+](https://nodejs.org/) & [pnpm](https://pnpm.io/) (frontend dev)
 - 8 GB RAM minimum (16 GB recommended)
 
 ### 1. Clone & configure
@@ -84,15 +128,15 @@ git clone https://github.com/Keviqai/keviq-core.git && cd keviq-core
 cp infra/docker/.env.example infra/docker/.env.local
 ```
 
-### 2. Start everything
+### 2. Start the platform
 
 ```bash
 ./scripts/bootstrap.sh
 ```
 
-This boots PostgreSQL, Redis, runs migrations across 13 schemas, and starts all 18 containers.
+Boots PostgreSQL + Redis, runs 13 schema migrations, starts 18 containers. Takes ~60 seconds from zero.
 
-### 3. Create a user & open the UI
+### 3. Create a user
 
 ```bash
 curl -s -X POST http://localhost:8080/v1/auth/register \
@@ -100,7 +144,7 @@ curl -s -X POST http://localhost:8080/v1/auth/register \
   -d '{"email":"admin@example.com","password":"changeme123","display_name":"Admin"}'
 ```
 
-Open **http://localhost:3000** and log in.
+Open **http://localhost:3000** — log in and create your first workspace.
 
 ### 4. Verify
 
@@ -108,27 +152,27 @@ Open **http://localhost:3000** and log in.
 ./scripts/smoke-test.sh    # 21 automated checks
 ```
 
-> **Production?** See the [Production Deployment Checklist](docs/ops/production-deployment-checklist.md).
+> **Deploying for real?** Follow the [Production Deployment Checklist](docs/ops/production-deployment-checklist.md) — covers secret rotation, resource sizing, health verification, and operational runbooks.
 
 ---
 
 ## Architecture
 
-Keviq Core is a **microservices platform** — 15 Python/FastAPI services communicating via an outbox pattern + Redis Streams event bus. Each service owns its own PostgreSQL schema.
+15 Python/FastAPI microservices. Each owns its own PostgreSQL schema. Services communicate via outbox pattern + Redis Streams — no direct service-to-service calls for state mutations.
 
 ```
                          ┌─────────────┐
-                         │   Next.js   │
-                         │  Frontend   │
+                         │   Next.js   │   21 pages, React 19
+                         │  Frontend   │   TanStack Query + Zustand
                          └──────┬──────┘
                                 │
                          ┌──────▼──────┐
-                         │ API Gateway │  auth + routing + rate limiting
+                         │ API Gateway │   JWT auth, routing, rate limiting
                          └──────┬──────┘
               ┌─────────────────┼─────────────────┐
               │                 │                  │
      ┌────────▼───┐    ┌───────▼──────┐   ┌──────▼───────┐
-     │   Control   │    │    Domain    │   │ Infrastructure│
+     │   Control   │    │    Domain    │   │Infrastructure │
      │             │    │              │   │               │
      │ auth        │    │ orchestrator │   │ event-store   │
      │ policy      │    │ agent-runtime│   │ model-gateway │
@@ -141,19 +185,26 @@ Keviq Core is a **microservices platform** — 15 Python/FastAPI services commun
               │                 │                  │
               └─────────────────┼─────────────────┘
                          ┌──────▼──────┐
-                         │ PostgreSQL  │  13 schemas (1 per service)
-                         │   + Redis   │  event bus + cache
+                         │ PostgreSQL  │   13 schemas (1 per service)
+                         │   + Redis   │   event bus + cache
                          └─────────────┘
 ```
 
-| Layer | Services | Role |
-|-------|----------|------|
-| **API Surface** | api-gateway, sse-gateway | Auth, routing, rate limiting, SSE streaming |
-| **Control** | auth, policy, workspace | Identity, RBAC, tenant isolation |
-| **Domain** | orchestrator, agent-runtime, artifact, execution | Task lifecycle, agent loops, artifact management, sandboxed execution |
-| **Infrastructure** | event-store, model-gateway, audit, notification, secret-broker, telemetry | Events, LLM routing, audit trail, alerts, secrets, metrics |
+| Layer | Services | Responsibility |
+|-------|----------|----------------|
+| **API Surface** | api-gateway, sse-gateway | Auth, routing, rate limiting, real-time event streaming |
+| **Control** | auth, policy, workspace | Identity, RBAC, multi-tenant isolation |
+| **Domain** | orchestrator, agent-runtime, artifact, execution | Task lifecycle, agent tool loops, artifact CRUD + provenance, sandboxed execution |
+| **Infrastructure** | event-store, model-gateway, audit, notification, secret-broker, telemetry | Event sourcing, LLM routing, audit trail, alerts, encrypted secrets, metrics |
 
-> **18 architecture specification documents** available in [`docs/`](docs/docs-index.md).
+> **18 architecture specification documents** cover every design decision. See the [Documentation Index](docs/docs-index.md).
+
+### Key design decisions
+
+- **One schema per service** — enforced by architecture tests. No shared tables, no cross-schema joins.
+- **Outbox pattern** — services write events to a local outbox table, a relay publishes to Redis Streams. Guarantees at-least-once delivery without distributed transactions.
+- **Capability-based RBAC** — permissions are capabilities (e.g., `task:create`, `artifact:upload`), not rigid roles. Policies bind capabilities to workspace members.
+- **910 architecture tests** — invariants are enforced in CI, not just documented. Tests verify import boundaries, schema isolation, API contracts, and security properties.
 
 ---
 
@@ -161,13 +212,14 @@ Keviq Core is a **microservices platform** — 15 Python/FastAPI services commun
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Python 3.12, FastAPI, SQLAlchemy, Alembic |
+| Backend | Python 3.12, FastAPI, SQLAlchemy 2.0, Alembic |
 | Frontend | TypeScript, Next.js 15, React 19, TanStack Query, Zustand |
-| Database | PostgreSQL 16 (multi-schema, one per service) |
+| Database | PostgreSQL 16 (multi-schema) |
 | Event Bus | Redis 7 Streams + outbox pattern |
 | Monorepo | pnpm workspaces + Turborepo |
-| Containers | Docker Compose (local), Kubernetes-ready |
-| Observability | Prometheus metrics, Grafana dashboards |
+| Infrastructure | Docker Compose (local), Kubernetes-ready |
+| Observability | Prometheus + Grafana (dashboards included) |
+| Testing | pytest (unit + arch), Playwright (E2E), k6 (load) |
 
 ---
 
@@ -176,23 +228,29 @@ Keviq Core is a **microservices platform** — 15 Python/FastAPI services commun
 ```
 keviq-core/
 ├── apps/                  # 15 backend services + Next.js frontend
-│   ├── api-gateway/       #   API routing, auth, rate limiting
-│   ├── orchestrator/      #   Task lifecycle, run management
-│   ├── agent-runtime/     #   Agent execution, tool loops
-│   ├── artifact-service/  #   Artifact CRUD, provenance, lineage
-│   ├── execution-service/ #   Sandboxed code execution
+│   ├── api-gateway/       #   routing, auth, rate limiting
+│   ├── orchestrator/      #   task lifecycle, run management
+│   ├── agent-runtime/     #   agent execution, tool loops, guardrails
+│   ├── artifact-service/  #   artifact CRUD, provenance, lineage, search
+│   ├── execution-service/ #   sandboxed code/tool execution
+│   ├── auth-service/      #   JWT auth, registration, token refresh
+│   ├── workspace-service/ #   multi-tenancy, membership
+│   ├── policy-service/    #   capability-based RBAC
+│   ├── event-store/       #   event sourcing, timeline, SSE
+│   ├── model-gateway/     #   LLM provider proxy
 │   ├── web/               #   Next.js 15 frontend (21 pages)
-│   └── ...                #   10 more services
+│   └── ...                #   4 more services
 ├── packages/              # 14 shared packages
-│   ├── api-client/        #   Type-safe API client
-│   ├── domain-types/      #   Shared TypeScript types
+│   ├── api-client/        #   type-safe API client
+│   ├── domain-types/      #   shared TypeScript types
 │   ├── server-state/      #   React Query hooks
-│   └── ...                #   11 more packages
-├── tools/                 # Architecture tests, codegen, migrations
-├── infra/                 # Docker Compose, Grafana, Prometheus
-├── scripts/               # bootstrap.sh, smoke-test.sh
-├── docs/                  # 18 architecture specification docs
-└── tests/                 # E2E tests (Playwright)
+│   ├── routing/           #   URL builders
+│   └── ...                #   10 more packages
+├── tools/arch-test/       # 910 architecture enforcement tests
+├── infra/                 # Docker Compose, Grafana, Prometheus configs
+├── scripts/               # bootstrap, smoke-test, clean-boot
+├── docs/                  # 18 architecture specs + ops guides
+└── tests/e2e/             # Playwright E2E + k6 load tests
 ```
 
 ---
@@ -200,41 +258,23 @@ keviq-core/
 ## Development
 
 ```bash
-# Full bootstrap (first time)
-./scripts/bootstrap.sh
+./scripts/bootstrap.sh           # Full start (infra + migrations + services)
+./scripts/bootstrap.sh migrate   # Migrations only
+./scripts/bootstrap.sh up        # Services only
+./scripts/smoke-test.sh          # 21 automated checks
+./scripts/clean-boot-test.sh     # Tear down everything, rebuild, verify
 
-# Migrations only
-./scripts/bootstrap.sh migrate
-
-# Start services only
-./scripts/bootstrap.sh up
-
-# Smoke test (21 checks)
-./scripts/smoke-test.sh
-
-# Architecture tests (910 tests)
-python -m pytest tools/arch-test/ -v
-
-# Frontend dev server
-cd apps/web && pnpm dev
-
-# View service logs
-cd infra/docker && docker compose -f docker-compose.yml \
-  -f docker-compose.local.yml --env-file .env.local logs -f <service>
-
-# Clean boot from zero (tears down everything, rebuilds, verifies)
-./scripts/clean-boot-test.sh
+python -m pytest tools/arch-test/ -v    # 910 architecture tests
+cd apps/web && pnpm dev                 # Frontend dev server (port 3000)
 ```
 
-### Local Ports
-
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:3000 |
-| API Gateway | http://localhost:8080 |
-| PostgreSQL | localhost:5434 |
-| Redis | localhost:6379 |
-| Individual services | localhost:8001–8016 |
+| Port | Service |
+|------|---------|
+| 3000 | Frontend (Next.js) |
+| 8080 | API Gateway |
+| 8001–8016 | Individual backend services |
+| 5434 | PostgreSQL |
+| 6379 | Redis |
 
 ---
 
@@ -242,25 +282,14 @@ cd infra/docker && docker compose -f docker-compose.yml \
 
 | Metric | Value |
 |--------|-------|
-| Backend services | 14/15 domain-functional |
-| User journeys | 21/21 verified |
+| Backend services | 14/15 domain-functional, 1 stub (sse-gateway) |
+| User journeys | 21/21 verified end-to-end |
 | Unit tests | 636 passing |
 | Architecture tests | 910 passing |
-| Frontend pages | 21 data-driven pages |
-| Prometheus metrics | All 15 services instrumented |
-
-The platform is **pilot-ready** for small deployments (1–5 users, single Docker host). See the [Production Deployment Checklist](docs/ops/production-deployment-checklist.md) for operational guidance.
-
----
-
-## External Dependencies
-
-| Dependency | Required? | Notes |
-|-----------|-----------|-------|
-| Docker + Compose v2 | Yes | Runs all 18 containers locally |
-| LLM API (OpenAI-compatible) | Optional | For agent execution. Supports OpenAI, Azure, vLLM, Ollama |
-| GPU | No | model-gateway is a proxy, not an inference engine |
-| Cloud services | No | Runs fully local |
+| E2E tests | 12 Playwright specs |
+| Load tests | k6 scripts (auth, task creation, concurrent writes) |
+| Frontend | 21 data-driven pages |
+| Observability | All 15 services expose `/metrics` |
 
 ---
 
@@ -268,33 +297,36 @@ The platform is **pilot-ready** for small deployments (1–5 users, single Docke
 
 | Document | Description |
 |----------|-------------|
-| [Architecture Index](docs/docs-index.md) | Navigation hub for all 18 spec docs |
-| [API Contracts](docs/07-api-contracts.md) | Full API specification |
-| [Production Checklist](docs/ops/production-deployment-checklist.md) | Deployment & operations guide |
-| [Observability](docs/ops/observability.md) | Prometheus + Grafana setup |
-| [Security Model](docs/08-sandbox-security-model.md) | Sandbox & execution security |
-| [Coding Standards](docs/CODING-RULES.md) | Code style & conventions |
-| [Testing Standards](docs/TESTING-RULES.md) | Test strategy & rules |
+| [Documentation Index](docs/docs-index.md) | Navigation hub — start here |
+| [Architectural Invariants](docs/02-architectural-invariants.md) | 15 rules the system must never violate |
+| [API Contracts](docs/07-api-contracts.md) | Full REST API specification |
+| [State Machines](docs/05-state-machines.md) | Task, run, artifact lifecycle models |
+| [Sandbox Security](docs/08-sandbox-security-model.md) | Execution isolation model |
+| [Permission Model](docs/09-permission-model.md) | Capability-based RBAC design |
+| [Artifact Lineage](docs/10-artifact-lineage-model.md) | Provenance and derivation tracking |
+| [Production Checklist](docs/ops/production-deployment-checklist.md) | Deployment, secrets, monitoring |
+| [Observability Guide](docs/ops/observability.md) | Prometheus + Grafana setup |
+| [Coding Standards](docs/CODING-RULES.md) | Contributor code conventions |
 
 ---
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code standards, and PR process.
 
-- Development setup & standards
-- Code style (Python: snake_case + type hints, TypeScript: strict mode)
-- Commit conventions
-- Pull request process
+Key constraints:
+- Each service owns its own schema — no cross-service imports
+- Architecture tests must pass — they enforce invariants in CI
+- Files < 300 lines, functions < 50 lines, route handlers < 80 lines
 
 ---
 
 ## Security
 
-Found a vulnerability? Please report it responsibly — see [SECURITY.md](SECURITY.md).
+Report vulnerabilities responsibly — see [SECURITY.md](SECURITY.md).
 
 ---
 
 ## License
 
-[MIT](LICENSE) — free to use, modify, and distribute.
+[MIT](LICENSE)
