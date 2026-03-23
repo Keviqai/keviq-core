@@ -194,7 +194,7 @@ Services using Redis Streams: orchestrator, agent-runtime, event-store, notifica
 | SMTP_PORT | 587 | No | notification-service |
 | SMTP_USERNAME | (unset) | No | notification-service |
 | SMTP_PASSWORD | (unset) | No | notification-service |
-| SMTP_FROM_EMAIL | noreply@monaos.app | No | notification-service |
+| SMTP_FROM_EMAIL | noreply@keviq.app | No | notification-service |
 | SMTP_USE_TLS | true | No | notification-service — set false only for local dev SMTP (mailpit/mailhog) |
 | MODEL_GATEWAY_URL | http://model-gateway:8000 | No | api-gateway |
 | AUDIT_SERVICE_URL | http://audit-service:8000 | No | orchestrator, api-gateway — audit events; fail-open if unset |
