@@ -1,7 +1,7 @@
 import { Providers } from './providers';
 
 export const metadata = {
-  title: 'MONAOS',
+  title: 'Keviq Core',
   description: 'Built for Autonomous Agents',
   icons: {
     icon: '/logo.png',

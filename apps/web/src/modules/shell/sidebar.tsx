@@ -52,7 +52,7 @@ export function Sidebar() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <LogoIcon size={24} />
-          <strong style={{ letterSpacing: '0.03em' }}>MONAOS</strong>
+          <strong style={{ letterSpacing: '0.03em' }}>KEVIQ</strong>
         </div>
         <button onClick={useSidebarStore.getState().toggle} aria-label="Collapse sidebar" style={{ cursor: 'pointer' }}>
           &#x2190;

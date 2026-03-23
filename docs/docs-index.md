@@ -9,9 +9,8 @@ for operators, developers, and architecture reviewers.
 
 ### Operator (deploy and run Keviq Core)
 
-1. [MVP Release Readiness](mvp-release-readiness.md) — what the system does, current status
-2. [Go-Live Runbook](runbook-go-live.md) — deployment profiles, startup, monitoring, recovery
-3. [Known Limitations](deferred-backlog.md) — what is not in MVP
+1. [Go-Live Runbook](runbook-go-live.md) — deployment profiles, startup, monitoring, recovery
+2. [Known Limitations](deferred-backlog.md) — what is not in MVP
 
 ### Developer (contribute to Keviq Core)
 
@@ -30,7 +29,6 @@ for operators, developers, and architecture reviewers.
 3. [Core Domain Model](04-core-domain-model.md) — entities and ownership
 4. [State Machines](05-state-machines.md) — lifecycle state diagrams
 5. [Architecture Gate Review](architecture-gate-review-00-12.md) — cross-doc consistency audit
-6. [Workspace Isolation Model](phase-d-pr44-isolation-model.md) — multi-tenant design
 
 ---
 
@@ -73,33 +71,12 @@ before any implementation code and serve as the authoritative source of truth.
 |-----|---------|
 | [Architecture Gate Review](architecture-gate-review-00-12.md) | Cross-document consistency audit, gaps, do-not-break list |
 
-### Slice Documentation (Phase B)
-
-Each slice has up to 3 documents: implementation contract, gate note, closeout.
-
-| Slice | Topic | Docs |
-|-------|-------|------|
-| Slice 1 | Auth + Workspace + Policy | [contract](slice-1-implementation-contract.md), [gate](slice-1-gate-note.md) |
-| Slice 2 | Task → Orchestrator → Event | [contract](slice-2-implementation-contract.md), [gate](slice-2-gate-note.md), [closeout](slice-2-closeout.md) |
-| Slice 3 | Run/Step Lifecycle | [gate](slice-3-gate-note.md), [closeout](slice-3-closeout.md) |
-| Slice 4 | Model Gateway + Agent | [contract](slice-4-implementation-contract.md), [pr20](slice-4-pr20-contract.md), [gate](slice-4-gate-note.md), [closeout](slice-4-closeout.md) |
-| Slice 5 | Artifact + Lineage | [contract](slice-5-implementation-contract.md), [gate](slice-5-gate-note.md), [closeout](slice-5-closeout.md) |
-| Slice 6 | Frontend Shell | [contract](slice-6-implementation-contract.md), [gate](slice-6-gate-note.md), [closeout](slice-6-closeout.md) |
-
-### Phase D: Deployment Maturity
-
-| Doc | Purpose |
-|-----|---------|
-| [Workspace Isolation Model](phase-d-pr44-isolation-model.md) | Multi-workspace isolation guarantees and known limitations |
-
 ### Operational Documentation
 
 | Doc | Purpose |
 |-----|---------|
 | [Go-Live Runbook](runbook-go-live.md) | Deployment, startup, monitoring, backup, rollback, scaling |
-| [MVP Release Readiness](mvp-release-readiness.md) | Current status, what works, known limitations |
 | [Deferred Backlog](deferred-backlog.md) | What is not in MVP, organized by category and priority |
-| [MVP Announcement](mvp-announcement.md) | Internal release announcement for the MVP milestone |
 | [Handoff Summary](handoff-summary.md) | Onboarding guide for new team members receiving the codebase |
 
 ---

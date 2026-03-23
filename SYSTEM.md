@@ -2,7 +2,6 @@
 
 > Single source of truth for all system parameters.
 > UPDATE this file EVERY TIME any config/infra changes.
-> Claude Code: read this BEFORE asking about ports, URLs, credentials, schemas.
 
 ## 1. Services & Ports
 

@@ -1,6 +1,6 @@
 # Coding Rules — Keviq Core
 
-> Referenced from CLAUDE.md. Claude Code reads when coding details are needed.
+> Coding standards for Keviq Core contributors
 
 ## Architecture: Microservices (not monolith)
 

@@ -1,6 +1,6 @@
 # Testing Rules — Keviq Core
 
-> Referenced from CLAUDE.md. Claude Code reads when testing details are needed.
+> Testing standards for Keviq Core contributors
 
 ## Test Pyramid — 7 Layers
 
