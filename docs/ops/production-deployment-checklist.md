@@ -64,7 +64,7 @@ See [docs/ops/secret-rotation.md](secret-rotation.md) for the full rotation proc
 | `SMTP_PORT` | 587 | |
 | `SMTP_USERNAME` | (unset) | SMTP auth credentials |
 | `SMTP_PASSWORD` | (unset) | |
-| `SMTP_FROM_EMAIL` | `noreply@monaos.app` | Set to your domain |
+| `SMTP_FROM_EMAIL` | `noreply@keviq.app` | Set to your domain |
 | `SMTP_USE_TLS` | `true` | Keep `true` for production SMTP |
 
 ### B4. Rate limiting (O9)
@@ -95,7 +95,7 @@ cp infra/docker/.env.example infra/docker/.env.local
 
 ```bash
 # 1. Clone and configure
-git clone <repo-url> monaos && cd monaos
+git clone <repo-url> keviq-core && cd keviq-core
 cp infra/docker/.env.example infra/docker/.env.local
 # Edit .env.local with production secrets (section B)
 

@@ -65,7 +65,7 @@ class TestSmtpConfig:
         from src.infrastructure.email.smtp_config import get_smtp_config
         with patch.dict(os.environ, {"SMTP_HOST": "mail.example.com"}):
             cfg = get_smtp_config()
-        assert cfg.from_email == "noreply@monaos.app"
+        assert cfg.from_email == "noreply@keviq.app"
 
     def test_use_tls_false_string(self):
         from src.infrastructure.email.smtp_config import get_smtp_config

@@ -26,6 +26,6 @@ def get_smtp_config() -> SmtpConfig | None:
         port=int(os.getenv("SMTP_PORT", "587")),
         username=os.getenv("SMTP_USERNAME", ""),
         password=os.getenv("SMTP_PASSWORD", ""),
-        from_email=os.getenv("SMTP_FROM_EMAIL", "noreply@monaos.app"),
+        from_email=os.getenv("SMTP_FROM_EMAIL", "noreply@keviq.app"),
         use_tls=os.getenv("SMTP_USE_TLS", "true").lower() not in ("false", "0", "no"),
     )

@@ -269,12 +269,12 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["monaos", "overview"],
+  "tags": ["keviq", "overview"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Keviq Core Overview",
-  "uid": "monaos-overview",
+  "uid": "keviq-overview",
   "version": 1
 }

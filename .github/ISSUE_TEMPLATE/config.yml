@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/Keviqai/keviq-core/blob/master/docs/docs-index.md
+    about: Check the docs before opening an issue
+  - name: Roadmap
+    url: https://github.com/Keviqai/keviq-core/blob/master/ROADMAP.md
+    about: See what's planned before requesting a feature

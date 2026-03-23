@@ -6,7 +6,7 @@ version: "3.8"
 services:
   prometheus:
     image: prom/prometheus:v2.51.0
-    container_name: monaos-prometheus
+    container_name: keviq-prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -17,24 +17,24 @@ services:
       - "--storage.tsdb.retention.time=7d"
       - "--web.enable-lifecycle"
     networks:
-      - monaos
+      - keviq-net
     restart: unless-stopped
 
   grafana:
     image: grafana/grafana:10.4.1
-    container_name: monaos-grafana
+    container_name: keviq-grafana
     ports:
       - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: monaos
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:-changeme}
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ../grafana/provisioning:/etc/grafana/provisioning:ro
       - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     networks:
-      - monaos
+      - keviq-net
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -44,5 +44,5 @@ volumes:
   grafana_data:
 
 networks:
-  monaos:
+  keviq-net:
     external: true

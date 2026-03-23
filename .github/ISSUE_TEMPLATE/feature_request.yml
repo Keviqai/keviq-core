@@ -1,0 +1,40 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea? We'd love to hear it. Please describe the problem you're trying to solve.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do that isn't possible or is difficult today?
+      placeholder: I'm trying to run a LangChain agent through Keviq Core, but there's no SDK...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds or alternative approaches you've tried?
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend service
+        - Frontend / UI
+        - API / SDK
+        - Documentation
+        - CI / DevOps
+        - Architecture
+        - Other

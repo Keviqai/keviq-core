@@ -5,7 +5,7 @@
 # Called by Claude Code hook (PreToolUse).
 # ═══════════════════════════════════════════════
 
-GATE_FILE=/tmp/monaos-pre-commit-pass
+GATE_FILE=/tmp/keviq-pre-commit-pass
 MAX_AGE=600  # 10 minutes
 
 # Check gate file exists

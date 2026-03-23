@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ts-build:
+    name: TypeScript Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+  ts-typecheck:
+    name: TypeScript Typecheck
+    runs-on: ubuntu-latest
+    needs: ts-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+
+  arch-test:
+    name: Architecture Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - run: python -m pytest tools/arch-test/ -v --ignore=tools/arch-test/test_slice5_contracts.py --ignore=tools/arch-test/test_slice6_contracts.py -x
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+  python-unit:
+    name: Python Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          pip install pytest httpx fastapi sqlalchemy alembic redis pydantic bcrypt pyjwt cryptography
+      - name: Run unit tests
+        run: |
+          failed=0
+          for svc in apps/*/; do
+            if [ -d "$svc/tests/unit" ] && ls "$svc/tests/unit"/test_*.py 1>/dev/null 2>&1; then
+              echo "::group::Testing $(basename $svc)"
+              PYTHONPATH="$svc/src:packages/logger:packages/internal-auth:packages/db-client:packages/config:packages/outbox:packages/test-utils:packages/resilience" \
+                python -m pytest "$svc/tests/unit/" -v --tb=short 2>&1 || failed=1
+              echo "::endgroup::"
+            fi
+          done
+          exit $failed
