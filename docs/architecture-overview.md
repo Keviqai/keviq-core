@@ -20,7 +20,6 @@ graph TB
 
     subgraph Gateway["API Surface"]
         APIGW["API Gateway<br/>JWT auth · routing · rate limiting"]
-        SSEGW["SSE Gateway<br/>real-time events (stub)"]
     end
 
     subgraph Control["Control Plane"]
@@ -37,7 +36,7 @@ graph TB
     end
 
     subgraph Infra["Infrastructure Services"]
-        EVENTSTORE["Event Store<br/>append-only event log"]
+        EVENTSTORE["Event Store<br/>append-only log · SSE streaming"]
         MODELGW["Model Gateway<br/>LLM provider routing"]
         AUDIT["Audit Service<br/>action audit trail"]
         NOTIF["Notification Service<br/>delivery + retry"]
@@ -55,9 +54,8 @@ graph TB
     APIGW --> POLICY
     APIGW --> ORCH
     APIGW --> ARTIFACT
-    APIGW --> EVENTSTORE
-
-    SSEGW -.->|subscribe| REDIS
+    APIGW --> WORKSPACE
+    APIGW -->|timeline, activity, SSE| EVENTSTORE
 
     ORCH -->|dispatch| AGENT
     AGENT -->|model call| MODELGW
@@ -99,9 +97,13 @@ calls execute in the **Execution Service** sandbox. Outputs are stored as first-
 artifacts in the **Artifact Service** with full provenance chains.
 
 ### Infrastructure Services — supporting concerns
-The **Event Store** persists all domain events (append-only). The **Model Gateway** proxies
-LLM calls to configurable providers. **Audit**, **Notification**, **Secret Broker**, and
-**Telemetry** services handle cross-cutting concerns without coupling to domain logic.
+The **Event Store** persists all domain events (append-only) and serves real-time SSE
+streams for run progress and activity feeds. The **Model Gateway** proxies LLM calls to
+configurable providers. **Audit**, **Notification**, **Secret Broker**, and **Telemetry**
+services handle cross-cutting concerns without coupling to domain logic.
+
+> **Note:** A separate `sse-gateway` service exists in the repo but is currently a stub
+> (health endpoints only). All real-time streaming is handled by `event-store` today.
 
 ---
 
