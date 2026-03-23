@@ -1,174 +1,300 @@
-# Keviq Core
+<p align="center">
+  <img src="apps/web/public/logo.png" alt="Keviq Core" width="80" />
+</p>
 
-AI-native work operating system. Orchestrate tasks, run agents, manage artifacts
-with full provenance tracking — all in a multi-tenant, permission-aware platform.
+<h1 align="center">Keviq Core</h1>
+
+<p align="center">
+  <strong>The open-source operating system for AI agents.</strong><br/>
+  Orchestrate tasks. Run agents. Manage artifacts — with full provenance, permissions, and observability.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <a href="#architecture"><img src="https://img.shields.io/badge/services-15-blueviolet" alt="15 Services" /></a>
+  <a href="#current-status"><img src="https://img.shields.io/badge/tests-1546_passing-brightgreen" alt="Tests" /></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/docker-compose_up-2496ED?logo=docker&logoColor=white" alt="Docker" /></a>
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick Start</a> &nbsp;&bull;&nbsp;
+  <a href="#features">Features</a> &nbsp;&bull;&nbsp;
+  <a href="#architecture">Architecture</a> &nbsp;&bull;&nbsp;
+  <a href="docs/docs-index.md">Documentation</a> &nbsp;&bull;&nbsp;
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
+---
+
+## What is Keviq Core?
+
+Keviq Core is a **self-hosted platform** for running AI agents as structured, observable work — not chat threads. It provides the control plane, execution environment, and audit trail that teams need to deploy AI agents in production.
+
+Think of it as **Kubernetes for AI workflows**: you define tasks, the system orchestrates agent runs, tracks every artifact with full provenance, and gives humans approval gates at critical decision points.
+
+### Who is this for?
+
+- **Teams deploying AI agents** who need governance, audit trails, and human-in-the-loop controls
+- **Platform engineers** building internal AI tooling on a proven microservices foundation
+- **Developers** who want a production-ready agent orchestration stack they can self-host and extend
+
+---
+
+## Features
+
+### Agent Orchestration
+- **Task-driven execution** — define work as tasks, not prompts. Tasks spawn runs, runs execute steps, steps produce artifacts
+- **Multi-agent coordination** — orchestrator manages task graphs, dependencies, retries, and cancellation
+- **Tool execution loop** — agents call tools in sandboxed environments with budget limits and guardrails
+- **Model gateway** — route to any OpenAI-compatible LLM (OpenAI, Azure, vLLM, Ollama) through a unified proxy
+
+### Human-in-the-Loop
+- **Approval gates** — require human approval before sensitive agent actions execute
+- **Review workflows** — assign reviewers, track approval decisions, get notified on outcomes
+- **Real-time observation** — watch agent execution live via SSE streams with 35+ event types
+
+### Artifact Management
+- **First-class artifacts** — every output is a versioned, typed artifact with metadata and ownership
+- **Full provenance** — track which agent, task, run, and step produced each artifact
+- **Lineage graph** — trace artifact derivation chains across workflows
+- **Search & tags** — filter by 10+ parameters, tag artifacts for organization
+- **Preview & export** — inline preview, diff view, annotations, and bulk export
+
+### Platform & Security
+- **Multi-tenant workspaces** — isolated environments with membership and role-based access
+- **Capability-based RBAC** — fine-grained permissions at the workspace level
+- **Secret management** — encrypted storage with versioned key rotation
+- **Audit logging** — every state change is recorded and queryable
+- **Observability** — Prometheus metrics on all 15 services, Grafana dashboards included
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) (with Docker Compose v2)
-- [Node.js 22+](https://nodejs.org/) and [pnpm](https://pnpm.io/) (for frontend dev)
-- [curl](https://curl.se/) and [Python 3](https://www.python.org/) (for smoke tests)
-- ~8 GB free RAM (16 GB recommended)
+- [Docker](https://docs.docker.com/get-docker/) with Compose v2
+- [Node.js 22+](https://nodejs.org/) & [pnpm](https://pnpm.io/) (for frontend dev)
+- 8 GB RAM minimum (16 GB recommended)
 
-### 1. Clone and configure
+### 1. Clone & configure
 
 ```bash
 git clone https://github.com/Keviqai/keviq-core.git && cd keviq-core
 cp infra/docker/.env.example infra/docker/.env.local
 ```
 
-The default configuration works for local development. For production,
-edit `.env.local` — see [Production Deployment Checklist](docs/ops/production-deployment-checklist.md).
-
-### 2. Bootstrap (start infra + run migrations + start services)
+### 2. Start everything
 
 ```bash
 ./scripts/bootstrap.sh
 ```
 
-This will:
-- Start PostgreSQL and Redis
-- Run database migrations for all 13 services (creates tables in 13 schemas)
-- Start all 18 containers (15 backend services + PostgreSQL + Redis + frontend)
-- Verify service health
+This boots PostgreSQL, Redis, runs migrations across 13 schemas, and starts all 18 containers.
 
-### 3. Create your first user and log in
+### 3. Create a user & open the UI
 
 ```bash
-# Register
-curl -X POST http://localhost:8080/v1/auth/register \
+curl -s -X POST http://localhost:8080/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@example.com","password":"changeme123","display_name":"Admin"}'
-
-# Open the frontend
-open http://localhost:3000
 ```
 
-Log in with `admin@example.com` / `changeme123`.
+Open **http://localhost:3000** and log in.
 
-### Verify everything works
+### 4. Verify
 
 ```bash
-./scripts/smoke-test.sh
+./scripts/smoke-test.sh    # 21 automated checks
 ```
 
-This runs automated checks against: infrastructure, service health, database
-tables, auth flow (register + login), workspace creation, and frontend serving.
+> **Production?** See the [Production Deployment Checklist](docs/ops/production-deployment-checklist.md).
 
-### Operations & deployment
-
-- **Production deployment:** See [docs/ops/production-deployment-checklist.md](docs/ops/production-deployment-checklist.md)
-- **Clean-boot verification:** `./scripts/clean-boot-test.sh` (tears down everything, reboots from zero, runs smoke)
-- **Observability stack:** See [docs/ops/observability.md](docs/ops/observability.md)
+---
 
 ## Architecture
 
-Keviq Core is a microservices platform with 15 backend services:
+Keviq Core is a **microservices platform** — 15 Python/FastAPI services communicating via an outbox pattern + Redis Streams event bus. Each service owns its own PostgreSQL schema.
 
-| Layer | Services |
-|---|---|
-| **API Surface** | api-gateway (auth + routing), sse-gateway |
-| **Control** | auth-service, policy-service, workspace-service |
-| **Domain** | orchestrator, agent-runtime, artifact-service, execution-service |
-| **Infrastructure** | event-store, model-gateway, audit-service, notification-service, secret-broker, telemetry-service |
-| **Frontend** | Next.js 15 + React 19 |
-
-Each service owns its own PostgreSQL schema and communicates via the outbox
-pattern + Redis Streams event bus.
-
-See [docs/docs-index.md](docs/docs-index.md) for the full architecture
-documentation (18 specification documents).
-
-## Development
-
-### Service ports (local dev)
-
-| Service | Port |
-|---|---|
-| Frontend (Next.js) | http://localhost:3000 |
-| API Gateway | http://localhost:8080 |
-| PostgreSQL | localhost:5434 |
-| Redis | localhost:6379 |
-
-Individual services are accessible on ports 8001-8015. See
-`infra/docker/docker-compose.local.yml` for the full port map.
-
-### Common commands
-
-```bash
-# Full bootstrap (first time or after migration changes)
-./scripts/bootstrap.sh
-
-# Run migrations only (infra must be up)
-./scripts/bootstrap.sh migrate
-
-# Start services only (migrations must have run)
-./scripts/bootstrap.sh up
-
-# Run smoke tests
-./scripts/smoke-test.sh
-
-# View logs
-cd infra/docker
-docker compose -f docker-compose.yml -f docker-compose.local.yml \
-  --env-file .env.local logs -f <service-name>
-
-# Stop everything
-cd infra/docker
-docker compose -f docker-compose.yml -f docker-compose.local.yml \
-  --env-file .env.local down
-
-# Run architecture tests
-python -m pytest tools/arch-test/ -v
+```
+                         ┌─────────────┐
+                         │   Next.js   │
+                         │  Frontend   │
+                         └──────┬──────┘
+                                │
+                         ┌──────▼──────┐
+                         │ API Gateway │  auth + routing + rate limiting
+                         └──────┬──────┘
+              ┌─────────────────┼─────────────────┐
+              │                 │                  │
+     ┌────────▼───┐    ┌───────▼──────┐   ┌──────▼───────┐
+     │   Control   │    │    Domain    │   │ Infrastructure│
+     │             │    │              │   │               │
+     │ auth        │    │ orchestrator │   │ event-store   │
+     │ policy      │    │ agent-runtime│   │ model-gateway │
+     │ workspace   │    │ artifact-svc │   │ audit-service │
+     │             │    │ execution-svc│   │ notification  │
+     │             │    │              │   │ secret-broker │
+     │             │    │              │   │ telemetry     │
+     │             │    │              │   │ sse-gateway   │
+     └─────────────┘    └──────────────┘   └───────────────┘
+              │                 │                  │
+              └─────────────────┼─────────────────┘
+                         ┌──────▼──────┐
+                         │ PostgreSQL  │  13 schemas (1 per service)
+                         │   + Redis   │  event bus + cache
+                         └─────────────┘
 ```
 
-### Frontend development
+| Layer | Services | Role |
+|-------|----------|------|
+| **API Surface** | api-gateway, sse-gateway | Auth, routing, rate limiting, SSE streaming |
+| **Control** | auth, policy, workspace | Identity, RBAC, tenant isolation |
+| **Domain** | orchestrator, agent-runtime, artifact, execution | Task lifecycle, agent loops, artifact management, sandboxed execution |
+| **Infrastructure** | event-store, model-gateway, audit, notification, secret-broker, telemetry | Events, LLM routing, audit trail, alerts, secrets, metrics |
 
-```bash
-cd apps/web
-pnpm install
-pnpm dev   # starts Next.js dev server on port 3000
-```
+> **18 architecture specification documents** available in [`docs/`](docs/docs-index.md).
 
-### Project structure
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python 3.12, FastAPI, SQLAlchemy, Alembic |
+| Frontend | TypeScript, Next.js 15, React 19, TanStack Query, Zustand |
+| Database | PostgreSQL 16 (multi-schema, one per service) |
+| Event Bus | Redis 7 Streams + outbox pattern |
+| Monorepo | pnpm workspaces + Turborepo |
+| Containers | Docker Compose (local), Kubernetes-ready |
+| Observability | Prometheus metrics, Grafana dashboards |
+
+---
+
+## Project Structure
 
 ```
 keviq-core/
-  apps/              # 15 backend services + 1 frontend
-  packages/          # 14 shared packages (api-client, domain-types, etc.)
-  tools/             # arch-test, codegen, db-migrate
-  infra/docker/      # Docker Compose, env files, init SQL
-  scripts/           # bootstrap.sh, smoke-test.sh
-  docs/              # 18 architecture docs + governance
+├── apps/                  # 15 backend services + Next.js frontend
+│   ├── api-gateway/       #   API routing, auth, rate limiting
+│   ├── orchestrator/      #   Task lifecycle, run management
+│   ├── agent-runtime/     #   Agent execution, tool loops
+│   ├── artifact-service/  #   Artifact CRUD, provenance, lineage
+│   ├── execution-service/ #   Sandboxed code execution
+│   ├── web/               #   Next.js 15 frontend (21 pages)
+│   └── ...                #   10 more services
+├── packages/              # 14 shared packages
+│   ├── api-client/        #   Type-safe API client
+│   ├── domain-types/      #   Shared TypeScript types
+│   ├── server-state/      #   React Query hooks
+│   └── ...                #   11 more packages
+├── tools/                 # Architecture tests, codegen, migrations
+├── infra/                 # Docker Compose, Grafana, Prometheus
+├── scripts/               # bootstrap.sh, smoke-test.sh
+├── docs/                  # 18 architecture specification docs
+└── tests/                 # E2E tests (Playwright)
 ```
+
+---
+
+## Development
+
+```bash
+# Full bootstrap (first time)
+./scripts/bootstrap.sh
+
+# Migrations only
+./scripts/bootstrap.sh migrate
+
+# Start services only
+./scripts/bootstrap.sh up
+
+# Smoke test (21 checks)
+./scripts/smoke-test.sh
+
+# Architecture tests (910 tests)
+python -m pytest tools/arch-test/ -v
+
+# Frontend dev server
+cd apps/web && pnpm dev
+
+# View service logs
+cd infra/docker && docker compose -f docker-compose.yml \
+  -f docker-compose.local.yml --env-file .env.local logs -f <service>
+
+# Clean boot from zero (tears down everything, rebuilds, verifies)
+./scripts/clean-boot-test.sh
+```
+
+### Local Ports
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| API Gateway | http://localhost:8080 |
+| PostgreSQL | localhost:5434 |
+| Redis | localhost:6379 |
+| Individual services | localhost:8001–8016 |
+
+---
 
 ## Current Status
 
-| Aspect | Status |
-|---|---|
-| Core platform (14/15 services domain-functional) | Stable |
-| User journeys (21/21 verified) | Complete |
-| Frontend (21 pages, data-driven) | Complete |
-| Test coverage (636 unit + 910 arch tests) | Passing |
+| Metric | Value |
+|--------|-------|
+| Backend services | 14/15 domain-functional |
+| User journeys | 21/21 verified |
+| Unit tests | 636 passing |
+| Architecture tests | 910 passing |
+| Frontend pages | 21 data-driven pages |
+| Prometheus metrics | All 15 services instrumented |
 
-14 of 15 backend services are domain-functional. sse-gateway serves health
-and metrics only (SSE is served by event-store). All services expose `/metrics`
-endpoints for Prometheus scraping.
+The platform is **pilot-ready** for small deployments (1–5 users, single Docker host). See the [Production Deployment Checklist](docs/ops/production-deployment-checklist.md) for operational guidance.
+
+---
 
 ## External Dependencies
 
-- **LLM API**: Any OpenAI-compatible endpoint (OpenAI, Azure, vLLM, Ollama).
-  Configure via `MODEL_GW_PROVIDER_*` env vars. Not required for basic
-  task/artifact management.
-- **No GPU required** — model-gateway is a proxy, not an inference engine.
-- **No cloud services required** — runs fully local with Docker Compose.
+| Dependency | Required? | Notes |
+|-----------|-----------|-------|
+| Docker + Compose v2 | Yes | Runs all 18 containers locally |
+| LLM API (OpenAI-compatible) | Optional | For agent execution. Supports OpenAI, Azure, vLLM, Ollama |
+| GPU | No | model-gateway is a proxy, not an inference engine |
+| Cloud services | No | Runs fully local |
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture Index](docs/docs-index.md) | Navigation hub for all 18 spec docs |
+| [API Contracts](docs/07-api-contracts.md) | Full API specification |
+| [Production Checklist](docs/ops/production-deployment-checklist.md) | Deployment & operations guide |
+| [Observability](docs/ops/observability.md) | Prometheus + Grafana setup |
+| [Security Model](docs/08-sandbox-security-model.md) | Sandbox & execution security |
+| [Coding Standards](docs/CODING-RULES.md) | Code style & conventions |
+| [Testing Standards](docs/TESTING-RULES.md) | Test strategy & rules |
+
+---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development standards and pull request process.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
+- Development setup & standards
+- Code style (Python: snake_case + type hints, TypeScript: strict mode)
+- Commit conventions
+- Pull request process
+
+---
+
+## Security
+
+Found a vulnerability? Please report it responsibly — see [SECURITY.md](SECURITY.md).
+
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE) — free to use, modify, and distribute.
