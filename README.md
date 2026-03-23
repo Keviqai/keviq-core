@@ -20,6 +20,7 @@
   <a href="#the-problem">Why this exists</a> &nbsp;&bull;&nbsp;
   <a href="#quick-start">Quick Start</a> &nbsp;&bull;&nbsp;
   <a href="#architecture">Architecture</a> &nbsp;&bull;&nbsp;
+  <a href="ROADMAP.md">Roadmap</a> &nbsp;&bull;&nbsp;
   <a href="docs/docs-index.md">Docs</a> &nbsp;&bull;&nbsp;
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
@@ -307,6 +308,21 @@ cd apps/web && pnpm dev                 # Frontend dev server (port 3000)
 | [Production Checklist](docs/ops/production-deployment-checklist.md) | Deployment, secrets, monitoring |
 | [Observability Guide](docs/ops/observability.md) | Prometheus + Grafana setup |
 | [Coding Standards](docs/CODING-RULES.md) | Contributor code conventions |
+
+---
+
+## Roadmap
+
+Keviq Core is under active development. The roadmap has four phases:
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| **Phase 1** | Hardened Platform — K8s, CI/CD, OpenTelemetry, distributed rate limiting | **In progress** |
+| **Phase 2** | Agent SDK — `pip install keviq` / `npm install @keviq/sdk` | Design |
+| **Phase 3** | Plugin System — agent plugins, tool plugins, storage/auth/notification extensions | Concept |
+| **Phase 4** | Ecosystem — federation, marketplace, AI infra primitives (memory, RAG, eval, cost tracking) | Future |
+
+Read the full **[ROADMAP.md](ROADMAP.md)** for details, code examples, and extension point specifications.
 
 ---
 
