@@ -36,17 +36,17 @@ router = APIRouter()
 # ── Health ─────────────────────────────────────────────────────
 
 @router.get("/healthz/live")
-def liveness():
+def liveness() -> dict[str, str]:
     return {"status": "live"}
 
 
 @router.get("/healthz/ready")
-def readiness():
+def readiness() -> dict[str, str]:
     return {"status": "ready"}
 
 
 @router.get("/healthz/info")
-def deployment_info():
+def deployment_info() -> dict[str, str]:
     import os
     info: dict = {"service": "orchestrator"}
     if os.getenv("APP_ENV", "development") == "development":

@@ -3,6 +3,15 @@
 Thank you for your interest in contributing! This guide covers everything you need
 to submit a high-quality pull request.
 
+## Your First Contribution
+
+New to the project? Start with the **[Your First Contribution Guide](docs/community/your-first-contribution.md)**.
+
+It covers three setup paths (docs-only, frontend, full stack), how to choose an
+issue, and what maintainers expect in a PR. Browse issues labeled
+**[good first issue](https://github.com/Keviqai/keviq-core/labels/good%20first%20issue)**
+to find beginner-friendly work.
+
 ## Before You Start
 
 - **Check existing issues** — someone may already be working on the same thing.
@@ -18,7 +27,7 @@ to submit a high-quality pull request.
 | Tool | Version |
 |------|---------|
 | Python | 3.12+ |
-| Node.js | 20 LTS |
+| Node.js | 22+ |
 | pnpm | 9+ |
 | Docker & Docker Compose | Latest stable |
 

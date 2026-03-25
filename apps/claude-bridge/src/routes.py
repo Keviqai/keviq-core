@@ -28,13 +28,13 @@ router = APIRouter()
 
 
 @router.get("/internal/v1/health")
-def health():
+def health() -> dict[str, str]:
     """Liveness probe — always returns ok."""
     return {"status": "ok", "service": "claude-bridge"}
 
 
 @router.get("/healthz/live")
-def liveness():
+def liveness() -> dict[str, str]:
     """Standard Keviq Core liveness probe."""
     return {"status": "live"}
 
@@ -43,7 +43,7 @@ def liveness():
 
 
 @router.get("/internal/v1/status")
-def bridge_status():
+def bridge_status() -> dict[str, Any]:
     """Report bridge readiness: binary, auth state, warnings."""
     return check_status()
 

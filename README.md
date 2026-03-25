@@ -327,9 +327,16 @@ Read the full **[ROADMAP.md](ROADMAP.md)** for details, code examples, and exten
 
 ---
 
-## Contributing
+## Start Contributing
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code standards, and PR process.
+New here? Pick a **[good first issue](https://github.com/Keviqai/keviq-core/labels/good%20first%20issue)** and follow the **[Your First Contribution](docs/community/your-first-contribution.md)** guide.
+
+Three setup paths depending on what you're changing:
+- **Docs only** — just Git, no setup needed
+- **Frontend** — Node + pnpm, no Docker
+- **Backend** — full Docker stack (~60 seconds to boot)
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for code standards, testing, and PR process.
 
 Key constraints:
 - Each service owns its own schema — no cross-service imports

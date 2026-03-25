@@ -32,6 +32,27 @@ for operators, developers, and architecture reviewers.
 
 ---
 
+## Index by Feature Area
+
+Find docs by what you want to work on, not by document number.
+
+| Feature Area | Key Docs | Key Services |
+|-------------|----------|--------------|
+| **Task orchestration** | [04 — Domain Model](04-core-domain-model.md), [05 — State Machines](05-state-machines.md), [07 — API Contracts](07-api-contracts.md) | `orchestrator` |
+| **Agent execution** | [05 — State Machines](05-state-machines.md), [08 — Sandbox Security](08-sandbox-security-model.md), [12 — Failure Recovery](12-failure-recovery-model.md) | `agent-runtime`, `execution-service` |
+| **Artifacts & lineage** | [10 — Artifact Lineage](10-artifact-lineage-model.md), [07 — API Contracts](07-api-contracts.md), [ops/artifact-search](ops/artifact-search.md) | `artifact-service` |
+| **Auth & RBAC** | [09 — Permission Model](09-permission-model.md), [02 — Invariants](02-architectural-invariants.md) | `auth-service`, `policy-service` |
+| **Multi-tenancy** | [03 — Bounded Contexts](03-bounded-contexts.md), [09 — Permission Model](09-permission-model.md) | `workspace-service` |
+| **Events & streaming** | [06 — Event Contracts](06-event-contracts.md), [05 — State Machines](05-state-machines.md) | `event-store`, `notification-service` |
+| **Observability** | [11 — Observability Model](11-observability-model.md), [ops/observability](ops/observability.md) | `telemetry-service`, `audit-service` |
+| **Secrets & config** | [ops/secret-rotation](ops/secret-rotation.md), [09 — Permission Model](09-permission-model.md) | `secret-broker` |
+| **API & gateway** | [07 — API Contracts](07-api-contracts.md), [ops/rate-limiting](ops/rate-limiting.md) | `api-gateway`, `model-gateway` |
+| **Frontend** | [14 — Frontend Map](14-frontend-application-map.md) | `web` |
+| **Deployment & ops** | [13 — Deployment Topology](13-deployment-topology.md), [Production Checklist](ops/production-deployment-checklist.md), [Go-Live Runbook](runbook-go-live.md) | `infra/` |
+| **Contributing** | [CODING-RULES](CODING-RULES.md), [TESTING-RULES](TESTING-RULES.md), [Your First Contribution](community/your-first-contribution.md) | — |
+
+---
+
 ## Full Document Map
 
 ### Architecture Constitution (docs 00-12)
