@@ -11,9 +11,10 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <a href="https://github.com/Keviqai/keviq-core/actions/workflows/ci.yml"><img src="https://github.com/Keviqai/keviq-core/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="#architecture"><img src="https://img.shields.io/badge/services-15_microservices-blueviolet" alt="15 Services" /></a>
-  <a href="#current-status"><img src="https://img.shields.io/badge/tests-1546_passing-brightgreen" alt="Tests" /></a>
   <a href="#quick-start"><img src="https://img.shields.io/badge/docker_compose_up-2496ED?logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="https://github.com/Keviqai/keviq-core/discussions"><img src="https://img.shields.io/github/discussions/Keviqai/keviq-core?logo=github" alt="Discussions" /></a>
 </p>
 
 <p align="center">
