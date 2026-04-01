@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-class DomainError(Exception):
+class DomainError(exception):
     """Base class for all domain errors."""
 
 
